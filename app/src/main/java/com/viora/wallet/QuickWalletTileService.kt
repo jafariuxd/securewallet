@@ -1,4 +1,4 @@
-package com.example
+package com.viora.wallet
 
 import android.app.PendingIntent
 import android.content.Intent

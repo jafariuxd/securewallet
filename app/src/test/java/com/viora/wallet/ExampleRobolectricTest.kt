@@ -1,4 +1,4 @@
-package com.example
+package com.viora.wallet
 
 import android.content.Context
 import androidx.test.core.app.ActivityScenario

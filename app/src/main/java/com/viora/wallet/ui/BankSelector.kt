@@ -1,4 +1,4 @@
-package com.example.ui
+package com.viora.wallet.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -23,8 +23,8 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import coil.decode.SvgDecoder
 import coil.request.ImageRequest
-import com.example.ui.theme.SophisticatedDarkBg
-import com.example.ui.theme.SophisticatedSurface
+import com.viora.wallet.ui.theme.SophisticatedDarkBg
+import com.viora.wallet.ui.theme.SophisticatedSurface
 
 data class IranianBank(
     val id: String,

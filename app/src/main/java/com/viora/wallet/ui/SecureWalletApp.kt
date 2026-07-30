@@ -1,5 +1,5 @@
 @file:OptIn(ExperimentalMaterial3Api::class)
-package com.example.ui
+package com.viora.wallet.ui
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 
@@ -60,10 +60,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.example.data.WalletCard
-import com.example.ui.theme.SophisticatedDarkBg
-import com.example.ui.theme.SophisticatedSurface
-import com.example.ui.theme.SophisticatedSurfaceVariant
+import com.viora.wallet.data.WalletCard
+import com.viora.wallet.ui.theme.SophisticatedDarkBg
+import com.viora.wallet.ui.theme.SophisticatedSurface
+import com.viora.wallet.ui.theme.SophisticatedSurfaceVariant
 import java.io.ByteArrayOutputStream
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch

@@ -1,4 +1,4 @@
-package com.example
+package com.viora.wallet
 
 import android.os.Bundle
 import androidx.activity.compose.setContent
@@ -6,9 +6,9 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.SystemBarStyle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.activity.viewModels
-import com.example.ui.SecureWalletApp
-import com.example.ui.WalletViewModel
-import com.example.ui.theme.MyApplicationTheme
+import com.viora.wallet.ui.SecureWalletApp
+import com.viora.wallet.ui.WalletViewModel
+import com.viora.wallet.ui.theme.MyApplicationTheme
 
 class MainActivity : AppCompatActivity() {
   private val viewModel: WalletViewModel by viewModels()
@@ -25,7 +25,7 @@ class MainActivity : AppCompatActivity() {
     setContent {
       MyApplicationTheme {
         if (isPickerMode) {
-          com.example.ui.DocumentPickerApp(viewModel = viewModel, onImagePicked = { uri ->
+          com.viora.wallet.ui.DocumentPickerApp(viewModel = viewModel, onImagePicked = { uri ->
               setResult(RESULT_OK, android.content.Intent().apply { 
                   data = uri 
                   addFlags(android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION)

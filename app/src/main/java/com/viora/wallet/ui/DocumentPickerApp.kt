@@ -1,4 +1,4 @@
-package com.example.ui
+package com.viora.wallet.ui
 
 import android.net.Uri
 import android.util.Base64
@@ -26,8 +26,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.FileProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.example.ui.theme.SophisticatedDarkBg
-import com.example.ui.theme.SophisticatedSurface
+import com.viora.wallet.ui.theme.SophisticatedDarkBg
+import com.viora.wallet.ui.theme.SophisticatedSurface
 import kotlinx.coroutines.launch
 import java.io.File
 import java.io.FileOutputStream

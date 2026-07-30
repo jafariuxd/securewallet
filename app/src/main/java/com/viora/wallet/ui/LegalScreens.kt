@@ -1,4 +1,4 @@
-package com.example.ui
+package com.viora.wallet.ui
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -14,8 +14,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.activity.compose.BackHandler
-import com.example.ui.theme.SophisticatedDarkBg
-import com.example.ui.theme.SophisticatedSurface
+import com.viora.wallet.ui.theme.SophisticatedDarkBg
+import com.viora.wallet.ui.theme.SophisticatedSurface
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

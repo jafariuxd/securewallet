@@ -1,7 +1,7 @@
-package com.example.ui
+package com.viora.wallet.ui
 
 import android.content.Context
-import com.example.data.WalletCard
+import com.viora.wallet.data.WalletCard
 import android.graphics.Bitmap
 import android.util.Log
 import android.view.ViewGroup

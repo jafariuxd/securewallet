@@ -1,6 +1,6 @@
-package com.example.ui
+package com.viora.wallet.ui
 
-import com.example.data.WalletCard
+import com.viora.wallet.data.WalletCard
 
 fun saveFormToViewModelAndNavigate(
     viewModel: WalletViewModel,

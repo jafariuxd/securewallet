@@ -1,4 +1,4 @@
-package com.example.ui
+package com.viora.wallet.ui
 
 import android.graphics.Bitmap
 import android.graphics.Canvas

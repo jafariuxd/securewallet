@@ -1,4 +1,4 @@
-package com.example.data
+package com.viora.wallet.data
 
 import kotlinx.coroutines.flow.Flow
 
