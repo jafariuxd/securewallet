@@ -1,0 +1,6 @@
+{
+  "name": "کیف مدارک",
+  "description": "An offline-first, biometric-secured wallet to safely store and share your credit cards, ID cards, and national documents.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -1,0 +1,78 @@
+Reusing configuration cache.
+> Task :app:preBuild UP-TO-DATE
+> Task :app:preDebugBuild UP-TO-DATE
+> Task :app:generateDebugAssets UP-TO-DATE
+> Task :app:processDebugGoogleServices
+> Task :app:generateDebugResources
+> Task :app:generateDebugBuildConfig
+> Task :app:processDebugNavigationResources
+> Task :app:javaPreCompileDebug
+> Task :app:mapDebugSourceSetPaths
+> Task :app:checkDebugAarMetadata
+> Task :app:compileDebugNavigationResources
+> Task :app:createDebugCompatibleScreenManifests
+> Task :app:extractDeepLinksDebug
+> Task :app:packageDebugResources
+> Task :app:processDebugMainManifest
+> Task :app:parseDebugLocalResources
+> Task :app:generateDebugRFile
+> Task :app:preDebugUnitTestBuild UP-TO-DATE
+> Task :app:javaPreCompileDebugUnitTest
+> Task :app:mergeDebugAssets
+> Task :app:processDebugUnitTestManifest
+> Task :app:processDebugManifest
+> Task :app:processDebugManifestForPackage
+> Task :app:mergeDebugResources
+> Task :app:processDebugResources
+> Task :app:packageDebugUnitTestForUnitTest
+> Task :app:generateDebugUnitTestConfig
+> Task :app:kspDebugKotlin
+
+> Task :app:compileDebugKotlin
+w: file:///app/applet/app/src/main/java/com/example/QuickWalletTileService.kt:13:9 'fun startActivityAndCollapse(p0: Intent!): Unit' is deprecated. Deprecated in Java.
+w: file:///app/applet/app/src/main/java/com/example/data/AppDatabase.kt:22:19 'fun fallbackToDestructiveMigration(): RoomDatabase.Builder<AppDatabase>' is deprecated. Replace by overloaded version with parameter to indicate if all tables should be dropped or not.
+w: file:///app/applet/app/src/main/java/com/example/data/DriveSyncManager.kt:5:8 'class GoogleSignInAccount : AbstractSafeParcelable, ReflectedParcelable' is deprecated. Deprecated in Java.
+w: file:///app/applet/app/src/main/java/com/example/data/DriveSyncManager.kt:7:8 'class GoogleSignInOptions : AbstractSafeParcelable, Api.ApiOptions.Optional, ReflectedParcelable' is deprecated. Deprecated in Java.
+w: file:///app/applet/app/src/main/java/com/example/data/DriveSyncManager.kt:25:29 'class GoogleSignInOptions : AbstractSafeParcelable, Api.ApiOptions.Optional, ReflectedParcelable' is deprecated. Deprecated in Java.
+w: file:///app/applet/app/src/main/java/com/example/data/DriveSyncManager.kt:25:57 'class GoogleSignInOptions : AbstractSafeParcelable, Api.ApiOptions.Optional, ReflectedParcelable' is deprecated. Deprecated in Java.
+w: file:///app/applet/app/src/main/java/com/example/data/DriveSyncManager.kt:32:42 'class GoogleSignInAccount : AbstractSafeParcelable, ReflectedParcelable' is deprecated. Deprecated in Java.
+w: file:///app/applet/app/src/main/java/com/example/data/DriveSyncManager.kt:75:44 'class GoogleSignInAccount : AbstractSafeParcelable, ReflectedParcelable' is deprecated. Deprecated in Java.
+w: file:///app/applet/app/src/main/java/com/example/data/DriveSyncManager.kt:116:47 'class GoogleSignInAccount : AbstractSafeParcelable, ReflectedParcelable' is deprecated. Deprecated in Java.
+w: file:///app/applet/app/src/main/java/com/example/ui/LiveScannerScreen.kt:45:26 'val LocalLifecycleOwner: ProvidableCompositionLocal<LifecycleOwner>' is deprecated. Moved to lifecycle-runtime-compose library in androidx.lifecycle.compose package.
+w: file:///app/applet/app/src/main/java/com/example/ui/SecureWalletApp.kt:373:69 'val Icons.Filled.Backspace: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.Backspace.
+w: file:///app/applet/app/src/main/java/com/example/ui/SecureWalletApp.kt:537:69 'val Icons.Filled.Backspace: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.Backspace.
+w: file:///app/applet/app/src/main/java/com/example/ui/SecureWalletApp.kt:770:57 'val Icons.Filled.ExitToApp: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.ExitToApp.
+w: file:///app/applet/app/src/main/java/com/example/ui/SecureWalletApp.kt:979:62 'val Icons.Filled.StickyNote2: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.StickyNote2.
+w: file:///app/applet/app/src/main/java/com/example/ui/SecureWalletApp.kt:1203:51 'val Icons.Filled.StickyNote2: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.StickyNote2.
+w: file:///app/applet/app/src/main/java/com/example/ui/SecureWalletApp.kt:1912:47 'fun get(p0: String!): Any?' is deprecated. Deprecated in Java.
+w: file:///app/applet/app/src/main/java/com/example/ui/SecureWalletApp.kt:1926:47 'fun get(p0: String!): Any?' is deprecated. Deprecated in Java.
+w: file:///app/applet/app/src/main/java/com/example/ui/SecureWalletApp.kt:1962:47 'fun get(p0: String!): Any?' is deprecated. Deprecated in Java.
+w: file:///app/applet/app/src/main/java/com/example/ui/SecureWalletApp.kt:1969:25 Condition is always 'true'.
+w: file:///app/applet/app/src/main/java/com/example/ui/SecureWalletApp.kt:2045:21 Condition is always 'true'.
+w: file:///app/applet/app/src/main/java/com/example/ui/SecureWalletApp.kt:2086:25 Condition is always 'true'.
+w: file:///app/applet/app/src/main/java/com/example/ui/SecureWalletApp.kt:2122:25 Condition is always 'true'.
+w: file:///app/applet/app/src/main/java/com/example/ui/SecureWalletApp.kt:3397:47 'fun get(p0: String!): Any?' is deprecated. Deprecated in Java.
+w: file:///app/applet/app/src/main/java/com/example/ui/SecureWalletApp.kt:3411:47 'fun get(p0: String!): Any?' is deprecated. Deprecated in Java.
+w: file:///app/applet/app/src/main/java/com/example/ui/SecureWalletApp.kt:3447:47 'fun get(p0: String!): Any?' is deprecated. Deprecated in Java.
+w: file:///app/applet/app/src/main/java/com/example/ui/SecureWalletApp.kt:3454:25 Condition is always 'true'.
+w: file:///app/applet/app/src/main/java/com/example/ui/SecureWalletApp.kt:3530:21 Condition is always 'true'.
+w: file:///app/applet/app/src/main/java/com/example/ui/SecureWalletApp.kt:3571:25 Condition is always 'true'.
+w: file:///app/applet/app/src/main/java/com/example/ui/SecureWalletApp.kt:3607:25 Condition is always 'true'.
+w: file:///app/applet/app/src/main/java/com/example/ui/WalletViewModel.kt:12:8 'class GoogleSignInAccount : AbstractSafeParcelable, ReflectedParcelable' is deprecated. Deprecated in Java.
+w: file:///app/applet/app/src/main/java/com/example/ui/WalletViewModel.kt:47:32 'class GoogleSignInAccount : AbstractSafeParcelable, ReflectedParcelable' is deprecated. Deprecated in Java.
+w: file:///app/applet/app/src/main/java/com/example/ui/WalletViewModel.kt:63:35 'class GoogleSignInAccount : AbstractSafeParcelable, ReflectedParcelable' is deprecated. Deprecated in Java.
+
+> Task :app:processDebugJavaRes
+> Task :app:compileDebugJavaWithJavac
+> Task :app:bundleDebugClassesToCompileJar
+> Task :app:bundleDebugClassesToRuntimeJar
+> Task :app:kspDebugUnitTestKotlin
+> Task :app:compileDebugUnitTestKotlin
+> Task :app:compileDebugUnitTestJavaWithJavac NO-SOURCE
+> Task :app:processDebugUnitTestJavaRes
+> Task :app:testDebugUnitTest
+> Task :app:finalizeTestRoborazziDebug SKIPPED
+
+BUILD SUCCESSFUL in 1m 11s
+33 actionable tasks: 33 executed
+Configuration cache entry reused.
