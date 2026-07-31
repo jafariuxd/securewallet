@@ -5309,6 +5309,7 @@ fun SettingsScreen(viewModel: WalletViewModel) {
             }
 
             // Google Drive Sync Card
+            /*
             Card(
                 colors = CardDefaults.cardColors(containerColor = SophisticatedSurface),
                 shape = RoundedCornerShape(16.dp),
@@ -5473,6 +5474,7 @@ fun SettingsScreen(viewModel: WalletViewModel) {
                     }
                 }
             }
+            */
 
             // About vault card
             Card(
