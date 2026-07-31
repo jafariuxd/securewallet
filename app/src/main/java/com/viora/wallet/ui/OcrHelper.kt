@@ -10,14 +10,20 @@ import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 
 fun enhanceBitmapForOcr(original: Bitmap): Bitmap {
-    val result = Bitmap.createBitmap(original.width, original.height, original.config ?: Bitmap.Config.ARGB_8888)
+    // 1. Scale up for better OCR on small details
+    val scale = 2.0f
+    val matrix = android.graphics.Matrix()
+    matrix.postScale(scale, scale)
+    val scaledBitmap = Bitmap.createBitmap(original, 0, 0, original.width, original.height, matrix, true)
+
+    val result = Bitmap.createBitmap(scaledBitmap.width, scaledBitmap.height, scaledBitmap.config ?: Bitmap.Config.ARGB_8888)
     val canvas = Canvas(result)
     
     val colorMatrix = ColorMatrix()
-    // 1. Grayscale
+    // 2. Grayscale
     colorMatrix.setSaturation(0f)
     
-    // 2. Increase Contrast (1.5x)
+    // 3. Increase Contrast (1.5x)
     val contrast = 1.5f
     val brightness = -20f
     val contrastMatrix = ColorMatrix(floatArrayOf(
@@ -31,7 +37,7 @@ fun enhanceBitmapForOcr(original: Bitmap): Bitmap {
     val paint = Paint()
     paint.colorFilter = ColorMatrixColorFilter(colorMatrix)
     
-    canvas.drawBitmap(original, 0f, 0f, paint)
+    canvas.drawBitmap(scaledBitmap, 0f, 0f, paint)
     return result
 }
 
@@ -48,82 +54,39 @@ suspend fun extractTextFromBitmap(bitmap: Bitmap): String = suspendCancellableCo
         }
 }
 
-fun parseCardInfoFromText(allText: String, cardType: String): ExtractedCardInfo {
+fun normalizeDigits(text: String): String {
+    var result = text
+    val persianDigits = arrayOf("۰", "۱", "۲", "۳", "۴", "۵", "۶", "۷", "۸", "۹")
+    val arabicDigits = arrayOf("٠", "١", "٢", "٣", "٤", "٥", "٦", "٧", "٨", "٩")
+    for (i in 0..9) {
+        result = result.replace(persianDigits[i], i.toString())
+        result = result.replace(arabicDigits[i], i.toString())
+    }
+    return result
+}
+
+fun parseCardInfoFromText(allTextRaw: String, cardType: String): ExtractedCardInfo {
+    val allText = normalizeDigits(allTextRaw)
     val nationalIdRegex = Regex("\\b\\d{10}\\b")
     // Support expiry formats with optional spaces around slash or dash: 03/12, 1403/12, 03 - 12
     val expiryRegex = Regex("\\b(?:13|14)?\\d{2}\\s*[/\\\\\\-]\\s*\\d{2}\\b")
     
     var cardNumber = ""
-    
-    if (cardType == "BANK_CARD") {
-        // Find 16 digits
-        val matches = Regex("(?:\\d[\\s\\-._]*){16,}").findAll(allText)
-        val possibleCards = matches.map { it.value.replace(Regex("\\D"), "") }.filter { it.length == 16 }.toList()
-        cardNumber = possibleCards.firstOrNull { it.startsWith("6") || it.startsWith("5") } 
-            ?: possibleCards.firstOrNull() 
-            ?: ""
-    } else {
-        cardNumber = nationalIdRegex.find(allText)?.value ?: ""
-    }
-    
-    // Find Expiry
-    val possibleExpiries = expiryRegex.findAll(allText).map { it.value }.toList()
-    var expiryMatch = possibleExpiries.firstOrNull() ?: ""
-    // Normalize expiry to remove spaces and fix slashes
-    expiryMatch = expiryMatch.replace(Regex("\\s+"), "").replace("\\", "/").replace("-", "/")
-    
-    var cvv = ""
-    val lines = allText.split("\n").map { it.trim() }.filter { it.isNotEmpty() }
-    
-    // 1. Look for CVV2 / CVV explicitly in the same line
-    for (line in lines) {
-        val upperLine = line.uppercase()
-        if (upperLine.contains("CVV2") || upperLine.contains("CVV")) {
-            val digits = Regex("\\b\\d{3,4}\\b").findAll(line).map { it.value }.toList()
-            val validDigits = digits.filter { !cardNumber.contains(it) && !expiryMatch.contains(it) }
-            if (validDigits.isNotEmpty()) {
-                cvv = validDigits.last()
-                break
-            }
-        }
-    }
-    
-    // 2. Look for CVV2 explicitly in the next lines
-    if (cvv.isEmpty()) {
-        for (i in lines.indices) {
-            val upperLine = lines[i].uppercase()
-            if (upperLine == "CVV2" || upperLine == "CVV") {
-                if (i + 1 < lines.size) {
-                    val nextLine = lines[i+1]
-                    val possibleCvv = Regex("^\\d{3,4}$").find(nextLine)?.value
-                    if (possibleCvv != null) {
-                        cvv = possibleCvv
-                        break
-                    }
-                }
-            }
-        }
-    }
-    
-    // 3. Fallback to any 3-4 digit number
-    if (cvv.isEmpty()) { 
-         val cvvRegex = Regex("\\b\\d{3,4}\\b")
-         val possibleCvvs = cvvRegex.findAll(allText).map { it.value }.toList()
-         val dateParts = expiryMatch.split("/")
-         cvv = possibleCvvs.firstOrNull { 
-             it.length in 3..4 && 
-             it != expiryMatch && 
-             !dateParts.contains(it) && 
-             !cardNumber.contains(it) &&
-             // Avoid classifying year 140x/139x as CVV
-             !(it.length == 4 && (it.startsWith("140") || it.startsWith("139")))
-         } ?: ""
-    }
-    
-    var title = ""
     var shebaMatchStr = ""
+    var accountNumber = ""
+    var title = ""
+
     if (cardType == "BANK_CARD") {
-        title = getBankNameFromCardNumber(cardNumber) ?: "کارت بانکی"
+        // Find 16 digits by stripping all non-digits first
+        val allDigits = allText.replace(Regex("\\D"), "")
+        val matcher = Regex("[56]\\d{15}").find(allDigits)
+        if (matcher != null) {
+            cardNumber = matcher.value
+        } else {
+            cardNumber = Regex("\\d{16}").find(allDigits)?.value ?: ""
+        }
+        
+        // Extract Sheba
         val allTextNoSpaces = allText.replace(Regex("\\s+"), "")
         val shebaExtracted = Regex("(?:IR)?\\d{24}").find(allTextNoSpaces)?.value ?: ""
         shebaMatchStr = if (shebaExtracted.isNotEmpty() && !shebaExtracted.startsWith("IR")) {
@@ -131,10 +94,65 @@ fun parseCardInfoFromText(allText: String, cardType: String): ExtractedCardInfo 
         } else {
             shebaExtracted
         }
-    } else if (cardType == "NATIONAL_ID") {
-        title = "کارت ملی"
-    } else if (cardType == "SHENASNAMEH") {
-        title = "شناسنامه"
+        
+        // Extract Account Number (find lines with "حساب" or "شماره حساب")
+        val lines = allText.split("\n")
+        for (i in lines.indices) {
+            val line = lines[i]
+            if (line.contains("حساب")) {
+                val digitsInSameLine = Regex("\\d{8,16}").find(line.replace(Regex("\\D"), ""))?.value
+                if (digitsInSameLine != null && digitsInSameLine != cardNumber && !shebaMatchStr.contains(digitsInSameLine)) {
+                    accountNumber = digitsInSameLine
+                    break
+                }
+                if (i + 1 < lines.size) {
+                    val nextLine = lines[i+1]
+                    val digitsInNextLine = Regex("\\d{8,16}").find(nextLine.replace(Regex("\\D"), ""))?.value
+                    if (digitsInNextLine != null && digitsInNextLine != cardNumber && !shebaMatchStr.contains(digitsInNextLine)) {
+                        accountNumber = digitsInNextLine
+                        break
+                    }
+                }
+            }
+        }
+        
+        title = getBankNameFromCardNumber(cardNumber) ?: "کارت بانکی"
+    } else {
+        cardNumber = nationalIdRegex.find(allText)?.value ?: ""
+        if (cardType == "NATIONAL_ID") {
+            title = "کارت ملی"
+        } else if (cardType == "SHENASNAMEH") {
+            title = "شناسنامه"
+        }
+    }
+    
+    // Find Expiry
+    val possibleExpiries = expiryRegex.findAll(allText).map { it.value }.toList()
+    var expiryMatch = possibleExpiries.firstOrNull() ?: ""
+    expiryMatch = expiryMatch.replace(Regex("\\s+"), "").replace("\\", "/").replace("-", "/")
+    
+    // Find CVV
+    var cvv = ""
+    val cvvRegex = Regex("(?i)cvv2?\\s*[:=\\-]?\\s*(\\d{3,4})")
+    val cvvMatch = cvvRegex.find(allText)
+    if (cvvMatch != null) {
+        cvv = cvvMatch.groupValues[1]
+    }
+    
+    // Fallback to any 3-4 digit number
+    if (cvv.isEmpty() && cardType == "BANK_CARD") {
+         val cvvRegexFallback = Regex("\\b\\d{3,4}\\b")
+         val possibleCvvs = cvvRegexFallback.findAll(allText).map { it.value }.toList()
+         val dateParts = expiryMatch.split("/")
+         cvv = possibleCvvs.firstOrNull {
+              it.length in 3..4 &&
+              it != expiryMatch &&
+              !dateParts.contains(it) &&
+              !cardNumber.contains(it) &&
+              (shebaMatchStr.isEmpty() || !shebaMatchStr.contains(it)) &&
+              (accountNumber.isEmpty() || !accountNumber.contains(it)) &&
+              !(it.length == 4 && (it.startsWith("140") || it.startsWith("139")))
+         } ?: ""
     }
     
     return ExtractedCardInfo(
@@ -143,7 +161,8 @@ fun parseCardInfoFromText(allText: String, cardType: String): ExtractedCardInfo 
         ownerName = "امکان استخراج نام آفلاین نیست", 
         secondNumber = cvv,
         expiryDate = expiryMatch,
-        shebaNumber = shebaMatchStr
+        shebaNumber = shebaMatchStr,
+        accountNumber = accountNumber
     )
 }
 

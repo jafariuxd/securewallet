@@ -47,6 +47,8 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.window.Dialog
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.testTag
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -1065,34 +1067,6 @@ fun DashboardScreen(viewModel: WalletViewModel) {
                                         )
                                     }
                                 }
-
-                                Surface(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(top = 12.dp),
-                                    color = SophisticatedSurface,
-                                    shape = RoundedCornerShape(12.dp),
-                                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.3f))
-                                ) {
-                                    Row(
-                                        modifier = Modifier.padding(12.dp),
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                                    ) {
-                                        Icon(
-                                            imageVector = Icons.Default.Info,
-                                            contentDescription = null,
-                                            tint = MaterialTheme.colorScheme.primary,
-                                            modifier = Modifier.size(18.dp)
-                                        )
-                                        Text(
-                                            text = "سایر قالب‌های اختصاصی در نسخه ویژه اضافه خواهند شد",
-                                            fontSize = 11.sp,
-                                            color = Color.LightGray,
-                                            fontWeight = FontWeight.Medium
-                                        )
-                                    }
-                                }
                             }
                         }
                     }
@@ -2081,7 +2055,8 @@ data class ExtractedCardInfo(
     val ownerName: String?,
     val secondNumber: String?,
     val expiryDate: String?,
-    val shebaNumber: String? = null
+    val shebaNumber: String? = null,
+    val accountNumber: String? = null
 )
 
 suspend fun analyzeCardOffline(
@@ -2271,6 +2246,8 @@ fun CardEditorScreen(viewModel: WalletViewModel, isEditMode: Boolean) {
                         if (!extracted.cardNumber.isNullOrBlank()) cardNumber = extracted.cardNumber
                         if (!extracted.secondNumber.isNullOrBlank()) secondNumber = extracted.secondNumber
                         if (!extracted.expiryDate.isNullOrBlank()) expiryDate = extracted.expiryDate
+                        if (!extracted.shebaNumber.isNullOrBlank()) shebaNumber = extracted.shebaNumber
+                        if (!extracted.accountNumber.isNullOrBlank()) accountNumber = extracted.accountNumber
                         Toast.makeText(context, "اطلاعات مدرک با موفقیت استخراج شد.", Toast.LENGTH_LONG).show()
                     } else {
                         scanError = "امکان استخراج اطلاعات وجود نداشت. لطفاً دوباره تلاش کنید."
@@ -2347,6 +2324,8 @@ fun CardEditorScreen(viewModel: WalletViewModel, isEditMode: Boolean) {
                     if (!extracted.cardNumber.isNullOrBlank()) cardNumber = extracted.cardNumber
                     if (!extracted.secondNumber.isNullOrBlank()) secondNumber = extracted.secondNumber
                     if (!extracted.expiryDate.isNullOrBlank()) expiryDate = extracted.expiryDate
+                    if (!extracted.shebaNumber.isNullOrBlank()) shebaNumber = extracted.shebaNumber
+                    if (!extracted.accountNumber.isNullOrBlank()) accountNumber = extracted.accountNumber
                     Toast.makeText(context, "اطلاعات مدرک با موفقیت استخراج شد.", Toast.LENGTH_LONG).show()
                 } else {
                     scanError = "امکان استخراج اطلاعات وجود نداشت. لطفاً دوباره تلاش کنید."
@@ -2388,6 +2367,8 @@ fun CardEditorScreen(viewModel: WalletViewModel, isEditMode: Boolean) {
                         if (!extracted.cardNumber.isNullOrBlank()) cardNumber = extracted.cardNumber
                         if (!extracted.secondNumber.isNullOrBlank()) secondNumber = extracted.secondNumber
                         if (!extracted.expiryDate.isNullOrBlank()) expiryDate = extracted.expiryDate
+                        if (!extracted.shebaNumber.isNullOrBlank()) shebaNumber = extracted.shebaNumber
+                        if (!extracted.accountNumber.isNullOrBlank()) accountNumber = extracted.accountNumber
                         Toast.makeText(context, "اطلاعات مدرک با موفقیت استخراج شد.", Toast.LENGTH_LONG).show()
                     } else {
                         scanError = "امکان استخراج اطلاعات وجود نداشت. لطفاً دوباره تلاش کنید."
@@ -2424,6 +2405,8 @@ fun CardEditorScreen(viewModel: WalletViewModel, isEditMode: Boolean) {
                         if (!extracted.cardNumber.isNullOrBlank()) cardNumber = extracted.cardNumber
                         if (!extracted.secondNumber.isNullOrBlank()) secondNumber = extracted.secondNumber
                         if (!extracted.expiryDate.isNullOrBlank()) expiryDate = extracted.expiryDate
+                        if (!extracted.shebaNumber.isNullOrBlank()) shebaNumber = extracted.shebaNumber
+                        if (!extracted.accountNumber.isNullOrBlank()) accountNumber = extracted.accountNumber
                         Toast.makeText(context, "اطلاعات مدرک با موفقیت استخراج شد.", Toast.LENGTH_LONG).show()
                     } else {
                         scanError = "امکان استخراج اطلاعات وجود نداشت. لطفاً دوباره تلاش کنید."
@@ -2459,20 +2442,11 @@ fun CardEditorScreen(viewModel: WalletViewModel, isEditMode: Boolean) {
         when (pendingActionAfterPermission) {
             "CAMERA_SCAN" -> {
                 if (cameraGranted) {
-                    saveFormToViewModelAndNavigate(
-                        viewModel = viewModel,
-                        id = card?.id ?: 0,
-                        title = title,
-                        cardType = cardType,
-                        ownerName = ownerName,
-                        cardNumber = cardNumber,
-                        secondNumber = secondNumber,
-                        expiryDate = expiryDate,
-                        shebaNumber = shebaNumber,
-                        accountNumber = accountNumber,
-                        frontImageBase64 = frontImageBase64,
-                        backImageBase64 = backImageBase64
-                    )
+                    try {
+                        scanCardCameraLauncher.launch(null)
+                    } catch (e: Exception) {
+                        Toast.makeText(context, "خطا", Toast.LENGTH_SHORT).show()
+                    }
                 } else {
                     Toast.makeText(context, "اجازه دسترسی به دوربین داده نشد.", Toast.LENGTH_SHORT).show()
                 }
@@ -2651,20 +2625,11 @@ fun CardEditorScreen(viewModel: WalletViewModel, isEditMode: Boolean) {
         ) == android.content.pm.PackageManager.PERMISSION_GRANTED
 
         if (hasCameraPermission) {
-            saveFormToViewModelAndNavigate(
-                viewModel = viewModel,
-                id = card?.id ?: 0,
-                title = title,
-                cardType = cardType,
-                ownerName = ownerName,
-                cardNumber = cardNumber,
-                secondNumber = secondNumber,
-                expiryDate = expiryDate,
-                shebaNumber = shebaNumber,
-                accountNumber = accountNumber,
-                frontImageBase64 = frontImageBase64,
-                backImageBase64 = backImageBase64
-            )
+            try {
+                        scanCardCameraLauncher.launch(null)
+                    } catch (e: Exception) {
+                        Toast.makeText(context, "خطا", Toast.LENGTH_SHORT).show()
+                    }
         } else {
             pendingActionAfterPermission = "CAMERA_SCAN"
             requestPermissionLauncher.launch(arrayOf(android.Manifest.permission.CAMERA))
@@ -2908,7 +2873,7 @@ fun CardEditorScreen(viewModel: WalletViewModel, isEditMode: Boolean) {
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     Text(
-                        text = "نوع مدرک هویتی یا بانکی:",
+                        text = "نوع مدرک:",
                         style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.secondary,
@@ -2918,75 +2883,43 @@ fun CardEditorScreen(viewModel: WalletViewModel, isEditMode: Boolean) {
 
                     val currentTypeName = getDocumentTypeName(cardType)
 
-                    Box(modifier = Modifier.fillMaxWidth()) {
-                        OutlinedCard(
+                    OutlinedCard(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { dropdownExpanded = true }
+                            .testTag("type_dropdown_trigger"),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = CardDefaults.outlinedCardColors(containerColor = SophisticatedDarkBg),
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.5f))
+                    ) {
+                        Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .clickable { dropdownExpanded = true }
-                                .testTag("type_dropdown_trigger"),
-                            shape = RoundedCornerShape(12.dp),
-                            colors = CardDefaults.outlinedCardColors(containerColor = SophisticatedDarkBg),
-                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.5f))
+                                .padding(horizontal = 16.dp, vertical = 14.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 16.dp, vertical = 14.dp),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Text(
-                                    text = currentTypeName,
-                                    color = Color.White,
-                                    fontWeight = FontWeight.Bold,
-                                    style = MaterialTheme.typography.bodyLarge
-                                )
-                                Icon(
-                                    imageVector = Icons.Default.ArrowDropDown,
-                                    contentDescription = "Dropdown Arrow",
-                                    tint = MaterialTheme.colorScheme.primary,
-                                    modifier = Modifier.size(28.dp)
-                                )
-                            }
-                        }
-
-                        DropdownMenu(
-                            expanded = dropdownExpanded,
-                            onDismissRequest = { dropdownExpanded = false },
-                            modifier = Modifier
-                                .fillMaxWidth(0.9f)
-                                .background(SophisticatedSurface)
-                        ) {
-                            val types = listOf(
-                                "BANK_CARD" to "💳 کارت بانکی",
-                                "NATIONAL_ID" to "🪪 کارت ملی",
-                                "SHENASNAMEH" to "📜 شناسنامه",
-                                "PASSPORT" to "🛂 پاسپورت / گذرنامه",
-                                "MILITARY_CARD" to "🪖 کارت پایان خدمت",
-                                "DRIVERS_LICENSE" to "🚘 گواهینامه رانندگی",
-                                "STUDENT_ID" to "🎓 کارت دانشجویی",
-                                "POSTAL_ADDRESS" to "📮 آدرس پستی",
-                                "OTHER" to "📂 سایر مدارک"
+                            Text(
+                                text = currentTypeName,
+                                color = Color.White,
+                                fontWeight = FontWeight.Bold,
+                                style = MaterialTheme.typography.bodyLarge
                             )
-                            types.forEach { (tKey, tVal) ->
-                                DropdownMenuItem(
-                                    text = {
-                                        Text(
-                                            text = tVal,
-                                            fontWeight = FontWeight.Bold,
-                                            color = if (cardType == tKey) MaterialTheme.colorScheme.primary else Color.White,
-                                            modifier = Modifier.fillMaxWidth(),
-                                            textAlign = TextAlign.Right
-                                        )
-                                    },
-                                    onClick = {
-                                        cardType = tKey
-                                        dropdownExpanded = false
-                                    },
-                                    modifier = Modifier.fillMaxWidth().testTag("type_sel_$tKey")
-                                )
-                            }
+                            Icon(
+                                imageVector = Icons.Default.ArrowDropDown,
+                                contentDescription = "Dropdown Arrow",
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(28.dp)
+                            )
                         }
+                    }
+
+                    if (dropdownExpanded) {
+                        DocumentTypeSelectorBottomSheet(
+                            selectedType = cardType,
+                            onDismissRequest = { dropdownExpanded = false },
+                            onTypeSelected = { newType -> cardType = newType }
+                        )
                     }
                 }
             }
@@ -3035,8 +2968,8 @@ fun CardEditorScreen(viewModel: WalletViewModel, isEditMode: Boolean) {
                 )
             }
 
-            // Compact Smart OCR Scan Bar (Restricted to Bank Cards)
-            if (cardType == "BANK_CARD") {
+            // Compact Smart OCR Scan Bar (Restricted to Bank Cards - Temporarily Hidden)
+            if (false && cardType == "BANK_CARD") {
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -3154,7 +3087,7 @@ fun CardEditorScreen(viewModel: WalletViewModel, isEditMode: Boolean) {
                     verticalArrangement = Arrangement.spacedBy(14.dp)
                 ) {
                     Text(
-                        text = "اطلاعات مدرک هویتی",
+                        text = "اطلاعات مدرک",
                         style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.secondary,
@@ -3288,47 +3221,42 @@ fun CardEditorScreen(viewModel: WalletViewModel, isEditMode: Boolean) {
                     // Tailored extra fields per card type
                     when (cardType) {
                         "BANK_CARD" -> {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(16.dp)
+                            OutlinedTextField(
+                                value = secondNumber,
+                                onValueChange = { secondNumber = it },
+                                label = { Text("CVV2") },
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                                modifier = Modifier.fillMaxWidth().testTag("input_second_num"),
+                                leadingIcon = {
+                                    Icon(imageVector = Icons.Default.Lock, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                                },
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                                    focusedTextColor = Color.White,
+                                    unfocusedTextColor = Color.White
+                                )
+                            )
+
+                            Box(
+                                modifier = Modifier.fillMaxWidth().clickable { showExpiryDatePicker = true }
                             ) {
                                 OutlinedTextField(
-                                    value = secondNumber,
-                                    onValueChange = { secondNumber = it },
-                                    label = { Text("CVV2") },
-                                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                                    modifier = Modifier.weight(1f).testTag("input_second_num"),
-                                    leadingIcon = {
-                                        Icon(imageVector = Icons.Default.Lock, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
-                                    },
+                                    value = expiryDate,
+                                    onValueChange = {},
+                                    label = { Text("تاریخ انقضا") },
+                                    readOnly = true,
+                                    enabled = false,
+                                    modifier = Modifier.fillMaxWidth().testTag("input_expiry"),
                                     colors = OutlinedTextFieldDefaults.colors(
-                                        focusedBorderColor = MaterialTheme.colorScheme.primary,
-                                        focusedTextColor = Color.White,
-                                        unfocusedTextColor = Color.White
-                                    )
+                                        disabledBorderColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f),
+                                        disabledTextColor = Color.White,
+                                        disabledLabelColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.8f),
+                                        disabledLeadingIconColor = MaterialTheme.colorScheme.primary
+                                    ),
+                                    leadingIcon = {
+                                        Icon(imageVector = Icons.Default.CalendarToday, contentDescription = "Select Expiry Date", tint = MaterialTheme.colorScheme.primary)
+                                    }
                                 )
-
-                                Box(
-                                    modifier = Modifier.weight(1.3f).clickable { showExpiryDatePicker = true }
-                                ) {
-                                    OutlinedTextField(
-                                        value = expiryDate,
-                                        onValueChange = {},
-                                        label = { Text("تاریخ انقضا") },
-                                        readOnly = true,
-                                        enabled = false,
-                                        modifier = Modifier.fillMaxWidth().testTag("input_expiry"),
-                                        colors = OutlinedTextFieldDefaults.colors(
-                                            disabledBorderColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f),
-                                            disabledTextColor = Color.White,
-                                            disabledLabelColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.8f),
-                                            disabledLeadingIconColor = MaterialTheme.colorScheme.primary
-                                        ),
-                                        leadingIcon = {
-                                            Icon(imageVector = Icons.Default.CalendarToday, contentDescription = "Select Expiry Date", tint = MaterialTheme.colorScheme.primary)
-                                        }
-                                    )
-                                }
                             }
 
                             OutlinedTextField(
@@ -3382,29 +3310,27 @@ fun CardEditorScreen(viewModel: WalletViewModel, isEditMode: Boolean) {
                                 )
                             )
 
-                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                                OutlinedTextField(
-                                    value = extraFatherName,
-                                    onValueChange = { extraFatherName = it },
-                                    label = { Text("نام پدر") },
-                                    modifier = Modifier.weight(1f).testTag("input_father_name"),
-                                    leadingIcon = {
-                                        Icon(imageVector = Icons.Default.PersonOutline, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
-                                    },
-                                    colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = MaterialTheme.colorScheme.primary, focusedTextColor = Color.White, unfocusedTextColor = Color.White)
-                                )
-                                OutlinedTextField(
-                                    value = extraBirthDate,
-                                    onValueChange = { extraBirthDate = it },
-                                    label = { Text("تاریخ تولد") },
-                                    placeholder = { Text("۱۳۷۰/۰۱/۰۱") },
-                                    modifier = Modifier.weight(1f).testTag("input_birth_date"),
-                                    leadingIcon = {
-                                        Icon(imageVector = Icons.Default.Cake, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
-                                    },
-                                    colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = MaterialTheme.colorScheme.primary, focusedTextColor = Color.White, unfocusedTextColor = Color.White)
-                                )
-                            }
+                            OutlinedTextField(
+                                value = extraFatherName,
+                                onValueChange = { extraFatherName = it },
+                                label = { Text("نام پدر") },
+                                modifier = Modifier.fillMaxWidth().testTag("input_father_name"),
+                                leadingIcon = {
+                                    Icon(imageVector = Icons.Default.PersonOutline, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                                },
+                                colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = MaterialTheme.colorScheme.primary, focusedTextColor = Color.White, unfocusedTextColor = Color.White)
+                            )
+                            OutlinedTextField(
+                                value = extraBirthDate,
+                                onValueChange = { extraBirthDate = it },
+                                label = { Text("تاریخ تولد") },
+                                placeholder = { Text("۱۳۷۰/۰۱/۰۱") },
+                                modifier = Modifier.fillMaxWidth().testTag("input_birth_date"),
+                                leadingIcon = {
+                                    Icon(imageVector = Icons.Default.Cake, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                                },
+                                colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = MaterialTheme.colorScheme.primary, focusedTextColor = Color.White, unfocusedTextColor = Color.White)
+                            )
                         }
 
                         "SHENASNAMEH" -> {
@@ -3419,52 +3345,48 @@ fun CardEditorScreen(viewModel: WalletViewModel, isEditMode: Boolean) {
                                 colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = MaterialTheme.colorScheme.primary, focusedTextColor = Color.White, unfocusedTextColor = Color.White)
                             )
 
-                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                                OutlinedTextField(
-                                    value = extraFatherName,
-                                    onValueChange = { extraFatherName = it },
-                                    label = { Text("نام پدر") },
-                                    modifier = Modifier.weight(1f).testTag("input_father_name"),
-                                    leadingIcon = {
-                                        Icon(imageVector = Icons.Default.PersonOutline, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
-                                    },
-                                    colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = MaterialTheme.colorScheme.primary, focusedTextColor = Color.White, unfocusedTextColor = Color.White)
-                                )
-                                OutlinedTextField(
-                                    value = extraMotherName,
-                                    onValueChange = { extraMotherName = it },
-                                    label = { Text("نام مادر") },
-                                    modifier = Modifier.weight(1f).testTag("input_mother_name"),
-                                    leadingIcon = {
-                                        Icon(imageVector = Icons.Default.PersonOutline, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
-                                    },
-                                    colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = MaterialTheme.colorScheme.primary, focusedTextColor = Color.White, unfocusedTextColor = Color.White)
-                                )
-                            }
+                            OutlinedTextField(
+                                value = extraFatherName,
+                                onValueChange = { extraFatherName = it },
+                                label = { Text("نام پدر") },
+                                modifier = Modifier.fillMaxWidth().testTag("input_father_name"),
+                                leadingIcon = {
+                                    Icon(imageVector = Icons.Default.PersonOutline, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                                },
+                                colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = MaterialTheme.colorScheme.primary, focusedTextColor = Color.White, unfocusedTextColor = Color.White)
+                            )
+                            OutlinedTextField(
+                                value = extraMotherName,
+                                onValueChange = { extraMotherName = it },
+                                label = { Text("نام مادر") },
+                                modifier = Modifier.fillMaxWidth().testTag("input_mother_name"),
+                                leadingIcon = {
+                                    Icon(imageVector = Icons.Default.PersonOutline, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                                },
+                                colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = MaterialTheme.colorScheme.primary, focusedTextColor = Color.White, unfocusedTextColor = Color.White)
+                            )
 
-                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                                OutlinedTextField(
-                                    value = extraBirthDate,
-                                    onValueChange = { extraBirthDate = it },
-                                    label = { Text("تاریخ تولد") },
-                                    placeholder = { Text("۱۳۷۰/۰۱/۰۱") },
-                                    modifier = Modifier.weight(1f).testTag("input_birth_date"),
-                                    leadingIcon = {
-                                        Icon(imageVector = Icons.Default.Cake, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
-                                    },
-                                    colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = MaterialTheme.colorScheme.primary, focusedTextColor = Color.White, unfocusedTextColor = Color.White)
-                                )
-                                OutlinedTextField(
-                                    value = extraIssuePlace,
-                                    onValueChange = { extraIssuePlace = it },
-                                    label = { Text("محل صدور / تولد") },
-                                    modifier = Modifier.weight(1f).testTag("input_issue_place"),
-                                    leadingIcon = {
-                                        Icon(imageVector = Icons.Default.LocationCity, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
-                                    },
-                                    colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = MaterialTheme.colorScheme.primary, focusedTextColor = Color.White, unfocusedTextColor = Color.White)
-                                )
-                            }
+                            OutlinedTextField(
+                                value = extraBirthDate,
+                                onValueChange = { extraBirthDate = it },
+                                label = { Text("تاریخ تولد") },
+                                placeholder = { Text("۱۳۷۰/۰۱/۰۱") },
+                                modifier = Modifier.fillMaxWidth().testTag("input_birth_date"),
+                                leadingIcon = {
+                                    Icon(imageVector = Icons.Default.Cake, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                                },
+                                colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = MaterialTheme.colorScheme.primary, focusedTextColor = Color.White, unfocusedTextColor = Color.White)
+                            )
+                            OutlinedTextField(
+                                value = extraIssuePlace,
+                                onValueChange = { extraIssuePlace = it },
+                                label = { Text("محل صدور / تولد") },
+                                modifier = Modifier.fillMaxWidth().testTag("input_issue_place"),
+                                leadingIcon = {
+                                    Icon(imageVector = Icons.Default.LocationCity, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                                },
+                                colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = MaterialTheme.colorScheme.primary, focusedTextColor = Color.White, unfocusedTextColor = Color.White)
+                            )
                         }
 
                         "PASSPORT" -> {
@@ -3480,110 +3402,102 @@ fun CardEditorScreen(viewModel: WalletViewModel, isEditMode: Boolean) {
                                 colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = MaterialTheme.colorScheme.primary, focusedTextColor = Color.White, unfocusedTextColor = Color.White)
                             )
 
-                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                                OutlinedTextField(
-                                    value = extraIssueDate,
-                                    onValueChange = { extraIssueDate = it },
-                                    label = { Text("تاریخ صدور") },
-                                    placeholder = { Text("1402/05/10") },
-                                    modifier = Modifier.weight(1f).testTag("input_issue_date"),
-                                    leadingIcon = {
-                                        Icon(imageVector = Icons.Default.CalendarToday, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
-                                    },
-                                    colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = MaterialTheme.colorScheme.primary, focusedTextColor = Color.White, unfocusedTextColor = Color.White)
-                                )
-                                OutlinedTextField(
-                                    value = expiryDate,
-                                    onValueChange = { expiryDate = it },
-                                    label = { Text("تاریخ انقضا") },
-                                    placeholder = { Text("1407/05/10") },
-                                    modifier = Modifier.weight(1f).testTag("input_expiry_date"),
-                                    leadingIcon = {
-                                        Icon(imageVector = Icons.Default.Event, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
-                                    },
-                                    colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = MaterialTheme.colorScheme.primary, focusedTextColor = Color.White, unfocusedTextColor = Color.White)
-                                )
-                            }
+                            OutlinedTextField(
+                                value = extraIssueDate,
+                                onValueChange = { extraIssueDate = it },
+                                label = { Text("تاریخ صدور") },
+                                placeholder = { Text("1402/05/10") },
+                                modifier = Modifier.fillMaxWidth().testTag("input_issue_date"),
+                                leadingIcon = {
+                                    Icon(imageVector = Icons.Default.CalendarToday, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                                },
+                                colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = MaterialTheme.colorScheme.primary, focusedTextColor = Color.White, unfocusedTextColor = Color.White)
+                            )
+                            OutlinedTextField(
+                                value = expiryDate,
+                                onValueChange = { expiryDate = it },
+                                label = { Text("تاریخ انقضا") },
+                                placeholder = { Text("1407/05/10") },
+                                modifier = Modifier.fillMaxWidth().testTag("input_expiry_date"),
+                                leadingIcon = {
+                                    Icon(imageVector = Icons.Default.Event, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                                },
+                                colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = MaterialTheme.colorScheme.primary, focusedTextColor = Color.White, unfocusedTextColor = Color.White)
+                            )
                         }
 
                         "MILITARY_CARD" -> {
-                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                                OutlinedTextField(
-                                    value = extraServiceStatus,
-                                    onValueChange = { extraServiceStatus = it },
-                                    label = { Text("وضعیت خدمت") },
-                                    placeholder = { Text("پایان خدمت / معافیت") },
-                                    modifier = Modifier.weight(1f).testTag("input_service_status"),
-                                    leadingIcon = {
-                                        Icon(imageVector = Icons.Default.CheckCircle, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
-                                    },
-                                    colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = MaterialTheme.colorScheme.primary, focusedTextColor = Color.White, unfocusedTextColor = Color.White)
-                                )
-                                OutlinedTextField(
-                                    value = extraMilitaryBranch,
-                                    onValueChange = { extraMilitaryBranch = it },
-                                    label = { Text("ارگان خدمت") },
-                                    placeholder = { Text("ارتش / سپاه / فراجا") },
-                                    modifier = Modifier.weight(1f).testTag("input_military_branch"),
-                                    leadingIcon = {
-                                        Icon(imageVector = Icons.Default.Shield, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
-                                    },
-                                    colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = MaterialTheme.colorScheme.primary, focusedTextColor = Color.White, unfocusedTextColor = Color.White)
-                                )
-                            }
+                            OutlinedTextField(
+                                value = extraServiceStatus,
+                                onValueChange = { extraServiceStatus = it },
+                                label = { Text("وضعیت خدمت") },
+                                placeholder = { Text("پایان خدمت / معافیت") },
+                                modifier = Modifier.fillMaxWidth().testTag("input_service_status"),
+                                leadingIcon = {
+                                    Icon(imageVector = Icons.Default.CheckCircle, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                                },
+                                colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = MaterialTheme.colorScheme.primary, focusedTextColor = Color.White, unfocusedTextColor = Color.White)
+                            )
+                            OutlinedTextField(
+                                value = extraMilitaryBranch,
+                                onValueChange = { extraMilitaryBranch = it },
+                                label = { Text("ارگان خدمت") },
+                                placeholder = { Text("ارتش / سپاه / فراجا") },
+                                modifier = Modifier.fillMaxWidth().testTag("input_military_branch"),
+                                leadingIcon = {
+                                    Icon(imageVector = Icons.Default.Shield, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                                },
+                                colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = MaterialTheme.colorScheme.primary, focusedTextColor = Color.White, unfocusedTextColor = Color.White)
+                            )
                         }
 
                         "DRIVERS_LICENSE" -> {
-                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                                OutlinedTextField(
-                                    value = extraLicenseType,
-                                    onValueChange = { extraLicenseType = it },
-                                    label = { Text("پایه گواهینامه") },
-                                    placeholder = { Text("پایه سوم / پایه دوم") },
-                                    modifier = Modifier.weight(1f).testTag("input_license_type"),
-                                    leadingIcon = {
-                                        Icon(imageVector = Icons.Default.DirectionsCar, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
-                                    },
-                                    colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = MaterialTheme.colorScheme.primary, focusedTextColor = Color.White, unfocusedTextColor = Color.White)
-                                )
-                                OutlinedTextField(
-                                    value = extraBloodType,
-                                    onValueChange = { extraBloodType = it },
-                                    label = { Text("گروه خونی") },
-                                    placeholder = { Text("O+") },
-                                    modifier = Modifier.weight(1f).testTag("input_blood_type"),
-                                    leadingIcon = {
-                                        Icon(imageVector = Icons.Default.Favorite, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
-                                    },
-                                    colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = MaterialTheme.colorScheme.primary, focusedTextColor = Color.White, unfocusedTextColor = Color.White)
-                                )
-                            }
+                            OutlinedTextField(
+                                value = extraLicenseType,
+                                onValueChange = { extraLicenseType = it },
+                                label = { Text("پایه گواهینامه") },
+                                placeholder = { Text("پایه سوم / پایه دوم") },
+                                modifier = Modifier.fillMaxWidth().testTag("input_license_type"),
+                                leadingIcon = {
+                                    Icon(imageVector = Icons.Default.DirectionsCar, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                                },
+                                colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = MaterialTheme.colorScheme.primary, focusedTextColor = Color.White, unfocusedTextColor = Color.White)
+                            )
+                            OutlinedTextField(
+                                value = extraBloodType,
+                                onValueChange = { extraBloodType = it },
+                                label = { Text("گروه خونی") },
+                                placeholder = { Text("O+") },
+                                modifier = Modifier.fillMaxWidth().testTag("input_blood_type"),
+                                leadingIcon = {
+                                    Icon(imageVector = Icons.Default.Favorite, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                                },
+                                colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = MaterialTheme.colorScheme.primary, focusedTextColor = Color.White, unfocusedTextColor = Color.White)
+                            )
                         }
 
                         "STUDENT_ID" -> {
-                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                                OutlinedTextField(
-                                    value = extraStudyField,
-                                    onValueChange = { extraStudyField = it },
-                                    label = { Text("رشته تحصیلی") },
-                                    modifier = Modifier.weight(1f).testTag("input_study_field"),
-                                    leadingIcon = {
-                                        Icon(imageVector = Icons.Default.School, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
-                                    },
-                                    colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = MaterialTheme.colorScheme.primary, focusedTextColor = Color.White, unfocusedTextColor = Color.White)
-                                )
-                                OutlinedTextField(
-                                    value = extraDegreeLevel,
-                                    onValueChange = { extraDegreeLevel = it },
-                                    label = { Text("مقطع تحصیلی") },
-                                    placeholder = { Text("کارشناسی / ارشد") },
-                                    modifier = Modifier.weight(1f).testTag("input_degree_level"),
-                                    leadingIcon = {
-                                        Icon(imageVector = Icons.Default.Class, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
-                                    },
-                                    colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = MaterialTheme.colorScheme.primary, focusedTextColor = Color.White, unfocusedTextColor = Color.White)
-                                )
-                            }
+                            OutlinedTextField(
+                                value = extraStudyField,
+                                onValueChange = { extraStudyField = it },
+                                label = { Text("رشته تحصیلی") },
+                                modifier = Modifier.fillMaxWidth().testTag("input_study_field"),
+                                leadingIcon = {
+                                    Icon(imageVector = Icons.Default.School, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                                },
+                                colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = MaterialTheme.colorScheme.primary, focusedTextColor = Color.White, unfocusedTextColor = Color.White)
+                            )
+                            OutlinedTextField(
+                                value = extraDegreeLevel,
+                                onValueChange = { extraDegreeLevel = it },
+                                label = { Text("مقطع تحصیلی") },
+                                placeholder = { Text("کارشناسی / ارشد") },
+                                modifier = Modifier.fillMaxWidth().testTag("input_degree_level"),
+                                leadingIcon = {
+                                    Icon(imageVector = Icons.Default.Class, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                                },
+                                colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = MaterialTheme.colorScheme.primary, focusedTextColor = Color.White, unfocusedTextColor = Color.White)
+                            )
                         }
 
                         "POSTAL_ADDRESS" -> {
@@ -3773,6 +3687,26 @@ fun CardEditorScreen(viewModel: WalletViewModel, isEditMode: Boolean) {
                         }
                     }
                 }
+            }
+
+            // Dialogs for Front Image Options
+            if (showImageOptionsForFront) {
+                ImageSourceSelectionDialog(
+                    title = "انتخاب تصویر روی مدرک",
+                    onDismissRequest = { showImageOptionsForFront = false },
+                    onCameraSelect = { checkAndLaunchCamera(true) },
+                    onGallerySelect = { checkAndLaunchGallery(true) }
+                )
+            }
+
+            // Dialogs for Back Image Options
+            if (showImageOptionsForBack) {
+                ImageSourceSelectionDialog(
+                    title = "انتخاب تصویر پشت مدرک",
+                    onDismissRequest = { showImageOptionsForBack = false },
+                    onCameraSelect = { checkAndLaunchCamera(false) },
+                    onGallerySelect = { checkAndLaunchGallery(false) }
+                )
             }
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -3968,6 +3902,8 @@ private fun legacyEditCardScreenUnused(viewModel: WalletViewModel) {
                         if (!extracted.cardNumber.isNullOrBlank()) cardNumber = extracted.cardNumber
                         if (!extracted.secondNumber.isNullOrBlank()) secondNumber = extracted.secondNumber
                         if (!extracted.expiryDate.isNullOrBlank()) expiryDate = extracted.expiryDate
+                        if (!extracted.shebaNumber.isNullOrBlank()) shebaNumber = extracted.shebaNumber
+                        if (!extracted.accountNumber.isNullOrBlank()) accountNumber = extracted.accountNumber
                         Toast.makeText(context, "اطلاعات مدرک با موفقیت مجدداً استخراج شد.", Toast.LENGTH_LONG).show()
                     } else {
                         scanError = "امکان استخراج اطلاعات وجود نداشت. لطفاً دوباره تلاش کنید."
@@ -4044,6 +3980,8 @@ private fun legacyEditCardScreenUnused(viewModel: WalletViewModel) {
                     if (!extracted.cardNumber.isNullOrBlank()) cardNumber = extracted.cardNumber
                     if (!extracted.secondNumber.isNullOrBlank()) secondNumber = extracted.secondNumber
                     if (!extracted.expiryDate.isNullOrBlank()) expiryDate = extracted.expiryDate
+                    if (!extracted.shebaNumber.isNullOrBlank()) shebaNumber = extracted.shebaNumber
+                    if (!extracted.accountNumber.isNullOrBlank()) accountNumber = extracted.accountNumber
                     Toast.makeText(context, "اطلاعات مدرک با موفقیت مجدداً استخراج شد.", Toast.LENGTH_LONG).show()
                 } else {
                     scanError = "امکان استخراج اطلاعات وجود نداشت. لطفاً دوباره تلاش کنید."
@@ -4085,6 +4023,8 @@ private fun legacyEditCardScreenUnused(viewModel: WalletViewModel) {
                         if (!extracted.cardNumber.isNullOrBlank()) cardNumber = extracted.cardNumber
                         if (!extracted.secondNumber.isNullOrBlank()) secondNumber = extracted.secondNumber
                         if (!extracted.expiryDate.isNullOrBlank()) expiryDate = extracted.expiryDate
+                        if (!extracted.shebaNumber.isNullOrBlank()) shebaNumber = extracted.shebaNumber
+                        if (!extracted.accountNumber.isNullOrBlank()) accountNumber = extracted.accountNumber
                         Toast.makeText(context, "اطلاعات مدرک با موفقیت استخراج شد.", Toast.LENGTH_LONG).show()
                     } else {
                         scanError = "امکان استخراج اطلاعات وجود نداشت. لطفاً دوباره تلاش کنید."
@@ -4121,6 +4061,8 @@ private fun legacyEditCardScreenUnused(viewModel: WalletViewModel) {
                         if (!extracted.cardNumber.isNullOrBlank()) cardNumber = extracted.cardNumber
                         if (!extracted.secondNumber.isNullOrBlank()) secondNumber = extracted.secondNumber
                         if (!extracted.expiryDate.isNullOrBlank()) expiryDate = extracted.expiryDate
+                        if (!extracted.shebaNumber.isNullOrBlank()) shebaNumber = extracted.shebaNumber
+                        if (!extracted.accountNumber.isNullOrBlank()) accountNumber = extracted.accountNumber
                         Toast.makeText(context, "اطلاعات مدرک با موفقیت استخراج شد.", Toast.LENGTH_LONG).show()
                     } else {
                         scanError = "امکان استخراج اطلاعات وجود نداشت. لطفاً دوباره تلاش کنید."
@@ -4156,20 +4098,11 @@ private fun legacyEditCardScreenUnused(viewModel: WalletViewModel) {
         when (pendingActionAfterPermission) {
             "CAMERA_SCAN" -> {
                 if (cameraGranted) {
-                    saveFormToViewModelAndNavigate(
-                        viewModel = viewModel,
-                        id = card?.id ?: 0,
-                        title = title,
-                        cardType = cardType,
-                        ownerName = ownerName,
-                        cardNumber = cardNumber,
-                        secondNumber = secondNumber,
-                        expiryDate = expiryDate,
-                        shebaNumber = shebaNumber,
-                        accountNumber = accountNumber,
-                        frontImageBase64 = frontImageBase64,
-                        backImageBase64 = backImageBase64
-                    )
+                    try {
+                        scanCardCameraLauncher.launch(null)
+                    } catch (e: Exception) {
+                        Toast.makeText(context, "خطا", Toast.LENGTH_SHORT).show()
+                    }
                 } else {
                     Toast.makeText(context, "اجازه دسترسی به دوربین داده نشد.", Toast.LENGTH_SHORT).show()
                 }
@@ -4348,20 +4281,11 @@ private fun legacyEditCardScreenUnused(viewModel: WalletViewModel) {
         ) == android.content.pm.PackageManager.PERMISSION_GRANTED
 
         if (hasCameraPermission) {
-            saveFormToViewModelAndNavigate(
-                viewModel = viewModel,
-                id = card?.id ?: 0,
-                title = title,
-                cardType = cardType,
-                ownerName = ownerName,
-                cardNumber = cardNumber,
-                secondNumber = secondNumber,
-                expiryDate = expiryDate,
-                shebaNumber = shebaNumber,
-                accountNumber = accountNumber,
-                frontImageBase64 = frontImageBase64,
-                backImageBase64 = backImageBase64
-            )
+            try {
+                        scanCardCameraLauncher.launch(null)
+                    } catch (e: Exception) {
+                        Toast.makeText(context, "خطا", Toast.LENGTH_SHORT).show()
+                    }
         } else {
             pendingActionAfterPermission = "CAMERA_SCAN"
             requestPermissionLauncher.launch(arrayOf(android.Manifest.permission.CAMERA))
@@ -4411,7 +4335,7 @@ private fun legacyEditCardScreenUnused(viewModel: WalletViewModel) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("ویرایش مدرک هویتی", fontWeight = FontWeight.Bold, color = Color.White) },
+                title = { Text("ویرایش مدرک", fontWeight = FontWeight.Bold, color = Color.White) },
                 navigationIcon = {
                     IconButton(
                         onClick = {
@@ -4620,55 +4544,61 @@ private fun legacyEditCardScreenUnused(viewModel: WalletViewModel) {
                 )
             }
 
-            // Document Type Selection Row (Clean & visual segmented cards)
+            // Document Type Selection Row
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(
-                    text = "نوع مدرک هویتی:",
+                    text = "نوع مدرک:",
                     style = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.Bold,
                     color = Color.LightGray,
                     modifier = Modifier.fillMaxWidth(),
                     textAlign = TextAlign.Right
                 )
-                
-                Row(
+
+                val currentTypeName = getDocumentTypeName(cardType)
+
+                OutlinedCard(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .horizontalScroll(rememberScrollState()),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        .clickable { dropdownExpanded = true }
+                        .testTag("type_dropdown_trigger_edit"),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = CardDefaults.outlinedCardColors(containerColor = SophisticatedDarkBg),
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.5f))
                 ) {
-                    val types = listOf(
-                        "BANK_CARD" to "کارت بانکی",
-                        "NATIONAL_ID" to "کارت ملی",
-                        "SHENASNAMEH" to "شناسنامه",
-                        "PASSPORT" to "پاسپورت",
-                        "MILITARY_CARD" to "کارت پایان خدمت",
-                        "DRIVERS_LICENSE" to "گواهینامه",
-                        "STUDENT_ID" to "کارت دانشجویی",
-                        "POSTAL_ADDRESS" to "آدرس پستی",
-                        "OTHER" to "سایر مدارک"
-                    )
-                    types.forEach { (typeKey, typeLabel) ->
-                        val isSelected = cardType == typeKey
-                        Card(
-                            onClick = { cardType = typeKey },
-                            shape = RoundedCornerShape(12.dp),
-                            colors = CardDefaults.cardColors(
-                                containerColor = if (isSelected) MaterialTheme.colorScheme.primary else SophisticatedSurface,
-                                contentColor = if (isSelected) Color.Black else Color.White
-                            ),
-                            modifier = Modifier.height(44.dp)
-                        ) {
-                            Box(modifier = Modifier.fillMaxHeight().padding(horizontal = 16.dp), contentAlignment = Alignment.Center) {
-                                Text(text = typeLabel, fontWeight = FontWeight.Bold, fontSize = 12.sp)
-                            }
-                        }
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 14.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = currentTypeName,
+                            color = Color.White,
+                            fontWeight = FontWeight.Bold,
+                            style = MaterialTheme.typography.bodyLarge
+                        )
+                        Icon(
+                            imageVector = Icons.Default.ArrowDropDown,
+                            contentDescription = "Dropdown Arrow",
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(28.dp)
+                        )
                     }
+                }
+
+                if (dropdownExpanded) {
+                    DocumentTypeSelectorBottomSheet(
+                        selectedType = cardType,
+                        onDismissRequest = { dropdownExpanded = false },
+                        onTypeSelected = { newType -> cardType = newType }
+                    )
                 }
             }
 
-            // AI Smart Scanning Section (Restricted to Bank Cards)
-            if (cardType == "BANK_CARD") {
+            // AI Smart Scanning Section (Restricted to Bank Cards - Temporarily Hidden)
+            if (false && cardType == "BANK_CARD") {
                 Card(
                     colors = CardDefaults.cardColors(containerColor = SophisticatedSurface),
                     shape = RoundedCornerShape(16.dp),
@@ -4820,7 +4750,7 @@ private fun legacyEditCardScreenUnused(viewModel: WalletViewModel) {
                     verticalArrangement = Arrangement.spacedBy(14.dp)
                 ) {
                     Text(
-                        text = "ویرایش اطلاعات مدرک هویتی",
+                        text = "اطلاعات مدرک",
                         style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.secondary,
@@ -4933,56 +4863,51 @@ private fun legacyEditCardScreenUnused(viewModel: WalletViewModel) {
 
                     // CVV2 / Expiry for Bank Card, or serial for Shenasnameh
                     if (cardType == "BANK_CARD") {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(16.dp)
+                        OutlinedTextField(
+                            value = secondNumber,
+                            onValueChange = { secondNumber = it },
+                            label = { Text("CVV2") },
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .testTag("edit_input_second_num"),
+                            leadingIcon = {
+                                Icon(imageVector = Icons.Default.Lock, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                            },
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                                focusedTextColor = Color.White,
+                                unfocusedTextColor = Color.White
+                            )
+                        )
+
+                        // Interactive Date Picker Trigger Box
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { showExpiryDatePicker = true }
                         ) {
                             OutlinedTextField(
-                                value = secondNumber,
-                                onValueChange = { secondNumber = it },
-                                label = { Text("CVV2") },
-                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .testTag("edit_input_second_num"),
-                                leadingIcon = {
-                                    Icon(imageVector = Icons.Default.Lock, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
-                                },
+                                value = expiryDate,
+                                onValueChange = {},
+                                label = { Text("تاریخ انقضا") },
+                                readOnly = true,
+                                enabled = false,
+                                modifier = Modifier.fillMaxWidth().testTag("edit_input_expiry"),
                                 colors = OutlinedTextFieldDefaults.colors(
-                                    focusedBorderColor = MaterialTheme.colorScheme.primary,
-                                    focusedTextColor = Color.White,
-                                    unfocusedTextColor = Color.White
-                                )
+                                    disabledBorderColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f),
+                                    disabledTextColor = Color.White,
+                                    disabledLabelColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.8f),
+                                    disabledLeadingIconColor = MaterialTheme.colorScheme.primary
+                                ),
+                                leadingIcon = {
+                                    Icon(
+                                        imageVector = Icons.Default.CalendarToday,
+                                        contentDescription = "Select Expiry Date",
+                                        tint = MaterialTheme.colorScheme.primary
+                                    )
+                                }
                             )
-
-                            // Interactive Date Picker Trigger Box
-                            Box(
-                                modifier = Modifier
-                                    .weight(1.3f)
-                                    .clickable { showExpiryDatePicker = true }
-                            ) {
-                                OutlinedTextField(
-                                    value = expiryDate,
-                                    onValueChange = {},
-                                    label = { Text("تاریخ انقضا") },
-                                    readOnly = true,
-                                    enabled = false,
-                                    modifier = Modifier.fillMaxWidth().testTag("edit_input_expiry"),
-                                    colors = OutlinedTextFieldDefaults.colors(
-                                        disabledBorderColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f),
-                                        disabledTextColor = Color.White,
-                                        disabledLabelColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.8f),
-                                        disabledLeadingIconColor = MaterialTheme.colorScheme.primary
-                                    ),
-                                    leadingIcon = {
-                                        Icon(
-                                            imageVector = Icons.Default.CalendarToday,
-                                            contentDescription = "Select Expiry Date",
-                                            tint = MaterialTheme.colorScheme.primary
-                                        )
-                                    }
-                                )
-                            }
                         }
                     } else {
                         val subLabel = when (cardType) {
@@ -5141,119 +5066,21 @@ private fun legacyEditCardScreenUnused(viewModel: WalletViewModel) {
 
             // Dialogs for Front Image Options
             if (showImageOptionsForFront) {
-                AlertDialog(
+                ImageSourceSelectionDialog(
+                    title = "انتخاب تصویر روی مدرک",
                     onDismissRequest = { showImageOptionsForFront = false },
-                    title = { Text("انتخاب تصویر روی مدرک", fontWeight = FontWeight.Bold, color = Color.White) },
-                    text = {
-                        Text("لطفاً منبع تصویر خود را انتخاب کنید:", color = Color.LightGray)
-                    },
-                    confirmButton = {
-                        Column(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            Button(
-                                onClick = {
-                                    showImageOptionsForFront = false
-                                    checkAndLaunchCamera(true)
-                                },
-                                modifier = Modifier.fillMaxWidth(),
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = MaterialTheme.colorScheme.primary,
-                                    contentColor = MaterialTheme.colorScheme.onPrimary
-                                )
-                            ) {
-                                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                    Icon(imageVector = Icons.Default.PhotoCamera, contentDescription = null)
-                                    Text("ثبت تصویر با دوربین")
-                                }
-                            }
-                            
-                            Button(
-                                onClick = {
-                                    showImageOptionsForFront = false
-                                    checkAndLaunchGallery(true)
-                                },
-                                modifier = Modifier.fillMaxWidth(),
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = SophisticatedSurface,
-                                    contentColor = Color.White
-                                )
-                            ) {
-                                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                    Icon(imageVector = Icons.Default.Image, contentDescription = null, tint = Color.LightGray)
-                                    Text("انتخاب از گالری", color = Color.LightGray)
-                                }
-                            }
-                        }
-                    },
-                    dismissButton = {
-                        TextButton(onClick = { showImageOptionsForFront = false }) {
-                            Text("انصراف", color = Color.Gray)
-                        }
-                    },
-                    containerColor = SophisticatedSurface,
-                    textContentColor = Color.White,
-                    titleContentColor = Color.White
+                    onCameraSelect = { checkAndLaunchCamera(true) },
+                    onGallerySelect = { checkAndLaunchGallery(true) }
                 )
             }
 
             // Dialogs for Back Image Options
             if (showImageOptionsForBack) {
-                AlertDialog(
+                ImageSourceSelectionDialog(
+                    title = "انتخاب تصویر پشت مدرک",
                     onDismissRequest = { showImageOptionsForBack = false },
-                    title = { Text("انتخاب تصویر پشت مدرک", fontWeight = FontWeight.Bold, color = Color.White) },
-                    text = {
-                        Text("لطفاً منبع تصویر خود را انتخاب کنید:", color = Color.LightGray)
-                    },
-                    confirmButton = {
-                        Column(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            Button(
-                                onClick = {
-                                    showImageOptionsForBack = false
-                                    checkAndLaunchCamera(false)
-                                },
-                                modifier = Modifier.fillMaxWidth(),
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = MaterialTheme.colorScheme.primary,
-                                    contentColor = MaterialTheme.colorScheme.onPrimary
-                                )
-                            ) {
-                                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                    Icon(imageVector = Icons.Default.PhotoCamera, contentDescription = null)
-                                    Text("ثبت تصویر با دوربین")
-                                }
-                            }
-                            
-                            Button(
-                                onClick = {
-                                    showImageOptionsForBack = false
-                                    checkAndLaunchGallery(false)
-                                },
-                                modifier = Modifier.fillMaxWidth(),
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = SophisticatedSurface,
-                                    contentColor = Color.White
-                                )
-                            ) {
-                                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                    Icon(imageVector = Icons.Default.Image, contentDescription = null, tint = Color.LightGray)
-                                    Text("انتخاب از گالری", color = Color.LightGray)
-                                }
-                            }
-                        }
-                    },
-                    dismissButton = {
-                        TextButton(onClick = { showImageOptionsForBack = false }) {
-                            Text("انصراف", color = Color.Gray)
-                        }
-                    },
-                    containerColor = SophisticatedSurface,
-                    textContentColor = Color.White,
-                    titleContentColor = Color.White
+                    onCameraSelect = { checkAndLaunchCamera(false) },
+                    onGallerySelect = { checkAndLaunchGallery(false) }
                 )
             }
 
@@ -5747,3 +5574,265 @@ fun createTempImageUri(context: android.content.Context): android.net.Uri {
     val file = java.io.File(context.cacheDir, "camera_capture_${System.currentTimeMillis()}.jpg")
     return androidx.core.content.FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
 }
+
+@Composable
+fun ImageSourceSelectionDialog(
+    title: String,
+    onDismissRequest: () -> Unit,
+    onCameraSelect: () -> Unit,
+    onGallerySelect: () -> Unit
+) {
+    Dialog(onDismissRequest = onDismissRequest) {
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 12.dp),
+            shape = RoundedCornerShape(24.dp),
+            colors = CardDefaults.cardColors(containerColor = SophisticatedSurface),
+            border = BorderStroke(1.dp, Color.White.copy(alpha = 0.12f)),
+            elevation = CardDefaults.cardElevation(defaultElevation = 12.dp)
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 18.dp, horizontal = 18.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                // Top handle bar
+                Box(
+                    modifier = Modifier
+                        .size(36.dp, 4.dp)
+                        .clip(CircleShape)
+                        .background(Color.White.copy(alpha = 0.2f))
+                )
+
+                Spacer(modifier = Modifier.height(14.dp))
+
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White,
+                    textAlign = TextAlign.Center
+                )
+
+                Spacer(modifier = Modifier.height(4.dp))
+
+                Text(
+                    text = "لطفاً منبع تصویر مدرک خود را انتخاب کنید:",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Color.LightGray.copy(alpha = 0.8f),
+                    textAlign = TextAlign.Center
+                )
+
+                Spacer(modifier = Modifier.height(18.dp))
+
+                // Camera & Gallery options
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    // Camera tile
+                    Surface(
+                        onClick = {
+                            onDismissRequest()
+                            onCameraSelect()
+                        },
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(96.dp),
+                        shape = RoundedCornerShape(16.dp),
+                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.4f))
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(10.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(40.dp)
+                                    .clip(CircleShape)
+                                    .background(MaterialTheme.colorScheme.primary),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.PhotoCamera,
+                                    contentDescription = "دوربین",
+                                    tint = MaterialTheme.colorScheme.onPrimary,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            }
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                text = "ثبت با دوربین",
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 12.sp,
+                                color = Color.White
+                            )
+                        }
+                    }
+
+                    // Gallery tile
+                    Surface(
+                        onClick = {
+                            onDismissRequest()
+                            onGallerySelect()
+                        },
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(96.dp),
+                        shape = RoundedCornerShape(16.dp),
+                        color = Color.White.copy(alpha = 0.06f),
+                        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.12f))
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(10.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(40.dp)
+                                    .clip(CircleShape)
+                                    .background(Color.White.copy(alpha = 0.12f)),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Image,
+                                    contentDescription = "گالری",
+                                    tint = Color.White,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            }
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                text = "انتخاب از گالری",
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 12.sp,
+                                color = Color.White
+                            )
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                TextButton(
+                    onClick = onDismissRequest,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(36.dp)
+                ) {
+                    Text(
+                        text = "انصراف",
+                        color = Color.LightGray.copy(alpha = 0.7f),
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Medium
+                    )
+                }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun DocumentTypeSelectorBottomSheet(
+    selectedType: String,
+    onDismissRequest: () -> Unit,
+    onTypeSelected: (String) -> Unit
+) {
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
+    val types = listOf(
+        "BANK_CARD" to "💳 کارت بانکی",
+        "NATIONAL_ID" to "🪪 کارت ملی",
+        "SHENASNAMEH" to "📜 شناسنامه",
+        "PASSPORT" to "🛂 پاسپورت / گذرنامه",
+        "MILITARY_CARD" to "🪖 کارت پایان خدمت",
+        "DRIVERS_LICENSE" to "🚘 گواهینامه رانندگی",
+        "STUDENT_ID" to "🎓 کارت دانشجویی",
+        "POSTAL_ADDRESS" to "📮 آدرس پستی",
+        "OTHER" to "📂 سایر مدارک"
+    )
+
+    ModalBottomSheet(
+        onDismissRequest = onDismissRequest,
+        sheetState = sheetState,
+        containerColor = SophisticatedSurface,
+        dragHandle = { BottomSheetDefaults.DragHandle() }
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp)
+                .padding(bottom = 24.dp)
+        ) {
+            Text(
+                text = "انتخاب نوع مدرک",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                color = Color.White,
+                modifier = Modifier.fillMaxWidth(),
+                textAlign = TextAlign.Center
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            LazyColumn(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                items(types) { (tKey, tVal) ->
+                    val isSelected = selectedType == tKey
+                    Surface(
+                        onClick = {
+                            onTypeSelected(tKey)
+                            onDismissRequest()
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .testTag("type_sel_$tKey"),
+                        shape = RoundedCornerShape(12.dp),
+                        color = if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.15f) else SophisticatedDarkBg,
+                        border = BorderStroke(
+                            1.dp,
+                            if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.5f) else Color.White.copy(alpha = 0.08f)
+                        )
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp, vertical = 14.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = tVal,
+                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                                color = if (isSelected) MaterialTheme.colorScheme.primary else Color.White,
+                                fontSize = 14.sp
+                            )
+
+                            if (isSelected) {
+                                Icon(
+                                    imageVector = Icons.Default.Check,
+                                    contentDescription = "انتخاب شده",
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
