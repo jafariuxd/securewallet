@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<font-family xmlns:app="http://schemas.android.com/apk/res-auto">
+    <font
+        app:font="@font/iransansx_thin"
+        app:fontWeight="100" />
+    <font
+        app:font="@font/iransansx_ultralight"
+        app:fontWeight="200" />
+    <font
+        app:font="@font/iransansx_light"
+        app:fontWeight="300" />
+    <font
+        app:font="@font/iransansx_regular"
+        app:fontWeight="400" />
+    <font
+        app:font="@font/iransansx_medium"
+        app:fontWeight="500" />
+    <font
+        app:font="@font/iransansx_demibold"
+        app:fontWeight="600" />
+    <font
+        app:font="@font/iransansx_bold"
+        app:fontWeight="700" />
+    <font
+        app:font="@font/iransansx_extrabold"
+        app:fontWeight="800" />
+    <font
+        app:font="@font/iransansx_black"
+        app:fontWeight="900" />
+</font-family>

@@ -7,10 +7,6 @@ import com.viora.wallet.data.*
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
-import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
-import com.google.android.gms.auth.api.signin.GoogleSignInAccount
-
 enum class AppScreen {
     LOGIN,
     FIRST_TIME_SETUP,
@@ -20,62 +16,20 @@ enum class AppScreen {
     EDIT_CARD,
     SETTINGS,
     PRIVACY_POLICY,
-    TERMS,
-    LIVE_SCANNER
+    TERMS
 }
 
 class WalletViewModel(application: Application) : AndroidViewModel(application) {
     private val database = AppDatabase.getDatabase(application)
     private val repository = WalletRepository(database.walletCardDao())
     val securityManager = SecurityManager(application)
-    private val driveSyncManager = DriveSyncManager(application)
-
-    fun getDriveSignInClient() = driveSyncManager.getSignInClient()
 
     fun getSignedInAccountEmail(): String? {
-        val account = com.google.android.gms.auth.api.signin.GoogleSignIn.getLastSignedInAccount(getApplication())
-        return account?.email
+        return null
     }
 
     fun signOutFromDrive(onComplete: () -> Unit) {
-        val client = getDriveSignInClient()
-        client.signOut().addOnCompleteListener {
-            onComplete()
-        }
-    }
-
-    fun backupToDrive(account: GoogleSignInAccount, onResult: (String) -> Unit) {
-        viewModelScope.launch {
-            try {
-                val cards = repository.getAllCardsList()
-                val result = driveSyncManager.backupDataToDrive(account, cards)
-                result.onSuccess { 
-                    onResult(it)
-                }.onFailure {
-                    onResult("خطا در همگام‌سازی: ${it.message}")
-                }
-            } catch (e: Exception) {
-                onResult("خطا: ${e.message}")
-            }
-        }
-    }
-
-    fun restoreFromDrive(account: GoogleSignInAccount, onResult: (String) -> Unit) {
-        viewModelScope.launch {
-            try {
-                val result = driveSyncManager.restoreDataFromDrive(account)
-                result.onSuccess { cards ->
-                    cards.forEach { card ->
-                        repository.insertCard(card.copy(id = 0)) 
-                    }
-                    onResult("بازگردانی با موفقیت انجام شد.")
-                }.onFailure {
-                    onResult("خطا در بازگردانی: ${it.message}")
-                }
-            } catch (e: Exception) {
-                onResult("خطا: ${e.message}")
-            }
-        }
+        onComplete()
     }
 
     // Screen State
@@ -157,11 +111,10 @@ class WalletViewModel(application: Application) : AndroidViewModel(application) 
     }
 
     fun isAutoSyncEnabled(): Boolean {
-        return securityManager.isAutoSyncEnabled()
+        return false
     }
 
     fun setAutoSyncEnabled(enabled: Boolean) {
-        securityManager.setAutoSyncEnabled(enabled)
     }
 
     fun setAuthenticatedDirectly() {
@@ -213,7 +166,7 @@ class WalletViewModel(application: Application) : AndroidViewModel(application) 
                 repository.updateCard(card)
             }
             
-            autoBackupIfSignedIn()
+            // autoBackupIfSignedIn() -> Removed for offline-only
 
             // Navigate back to dashboard or details
             if (id != 0 && _selectedCard.value?.id == id) {
@@ -231,15 +184,7 @@ class WalletViewModel(application: Application) : AndroidViewModel(application) 
             _selectedCard.value = null
             _currentScreen.value = AppScreen.DASHBOARD
             
-            autoBackupIfSignedIn()
-        }
-    }
-
-    private fun autoBackupIfSignedIn() {
-        if (!securityManager.isAutoSyncEnabled()) return
-        val account = com.google.android.gms.auth.api.signin.GoogleSignIn.getLastSignedInAccount(getApplication())
-        if (account != null) {
-            backupToDrive(account) { _ -> }
+            // autoBackupIfSignedIn() -> Removed for offline-only
         }
     }
 }

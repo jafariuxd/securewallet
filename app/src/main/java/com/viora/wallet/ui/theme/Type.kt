@@ -20,8 +20,6 @@ val iranSansXFontFamily = FontFamily(
     Font(R.font.iransansx_black, FontWeight.Black)
 )
 
-val vazirmatnFontFamily = iranSansXFontFamily
-
 val defaultFontFamily = iranSansXFontFamily
 
 val Typography = Typography(

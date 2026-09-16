@@ -1,12 +1,17 @@
-import com.google.gms.googleservices.GoogleServicesPlugin.MissingGoogleServicesStrategy
+import java.util.Properties
+
+val keyProperties = Properties().apply {
+  val keyPropertiesFile = rootProject.file("key.properties")
+  if (keyPropertiesFile.exists()) {
+    keyPropertiesFile.inputStream().use(::load)
+  }
+}
 
 plugins {
   alias(libs.plugins.android.application)
   alias(libs.plugins.kotlin.compose)
   alias(libs.plugins.google.devtools.ksp)
   alias(libs.plugins.roborazzi)
-  alias(libs.plugins.secrets)
-  alias(libs.plugins.google.services)
 }
 
 android {
@@ -17,11 +22,13 @@ android {
     applicationId = "com.viora.wallet"
     minSdk = 24
     targetSdk = 36
-    versionCode = 1
-    versionName = "1.0"
+    versionCode = 5
+    versionName = "1.0.4"
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
   }
+
+  experimentalProperties["android.experimental.art-profile-r8-rewriting"] = false
 
   signingConfigs {
     create("debugConfig") {
@@ -30,6 +37,12 @@ android {
       keyAlias = "androiddebugkey"
       keyPassword = "android"
     }
+    create("releaseConfig") {
+      keyProperties.getProperty("storeFile")?.let { storeFile = file(it) }
+      keyProperties.getProperty("keyAlias")?.let { keyAlias = it }
+      keyProperties.getProperty("storePassword")?.let { storePassword = it }
+      keyProperties.getProperty("keyPassword")?.let { keyPassword = it }
+    }
   }
 
   buildTypes {
@@ -37,9 +50,13 @@ android {
       isCrunchPngs = false
       isMinifyEnabled = false
       proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
-      signingConfig = signingConfigs.getByName("debugConfig")
+      signingConfig = signingConfigs.getByName("releaseConfig")
     }
-    debug { signingConfig = signingConfigs.getByName("debugConfig") }
+    debug {
+      if (file("${rootDir}/debug.keystore").exists()) {
+        signingConfig = signingConfigs.getByName("debugConfig")
+      }
+    }
   }
   compileOptions {
     sourceCompatibility = JavaVersion.VERSION_11
@@ -59,28 +76,17 @@ android {
   testOptions { unitTests { isIncludeAndroidResources = true } }
 }
 
-// Configure the Secrets Gradle Plugin to use .env and .env.example files
-// to match the convention used in Web projects.
-secrets {
-  propertiesFileName = ".env"
-  defaultPropertiesFileName = ".env.example"
-}
-
-googleServices { missingGoogleServicesStrategy = MissingGoogleServicesStrategy.WARN }
-
-// Some unused dependencies are commented out below instead of being removed.
-// This makes it easy to add them back in the future if needed.
+// Some dependencies were removed or commented out to make the app strictly offline.
 dependencies {
-  implementation("com.google.android.gms:play-services-auth:20.7.0")
-  implementation("com.google.api-client:google-api-client-android:1.33.0")
-  implementation("com.google.apis:google-api-services-drive:v3-rev20220815-2.0.0")
+  // implementation("com.google.android.gms:play-services-auth:20.7.0")
+  // implementation("com.google.api-client:google-api-client-android:1.33.0")
+  // implementation("com.google.apis:google-api-services-drive:v3-rev20220815-2.0.0")
   implementation("com.google.code.gson:gson:2.10.1")
-  implementation(platform("com.google.firebase:firebase-bom:34.16.0"))
+  // implementation(platform("com.google.firebase:firebase-bom:34.16.0"))
   implementation(libs.androidx.appcompat)
-    implementation(libs.material)
-  implementation(libs.mlkit.text.recognition)
+  implementation(libs.material)
   implementation(platform(libs.androidx.compose.bom))
-  implementation(platform(libs.firebase.bom))
+  // implementation(platform(libs.firebase.bom))
   implementation(libs.accompanist.permissions)
   implementation(libs.androidx.activity.compose)
   implementation(libs.androidx.fragment.ktx)
@@ -94,38 +100,26 @@ dependencies {
   implementation(libs.androidx.compose.material3)
   implementation(libs.androidx.compose.ui)
   implementation(libs.androidx.compose.ui.graphics)
-    implementation(libs.androidx.compose.ui.text.google.fonts)
+  implementation(libs.androidx.compose.ui.text.google.fonts)
   implementation(libs.androidx.compose.ui.tooling.preview)
   implementation(libs.androidx.core.ktx)
-  // implementation(libs.androidx.datastore.preferences)
   implementation(libs.androidx.lifecycle.runtime.compose)
   implementation(libs.androidx.lifecycle.runtime.ktx)
   implementation(libs.androidx.lifecycle.viewmodel.compose)
-  // implementation(libs.androidx.navigation.compose)
   implementation(libs.androidx.room.ktx)
   implementation(libs.androidx.room.runtime)
   implementation(libs.coil.compose)
   implementation(libs.coil.svg)
-  implementation(libs.converter.moshi)
-  implementation(libs.firebase.ai)
-  // Uncomment to use Firestore:
-  // implementation(libs.firebase.firestore)
-
-  // Firebase Auth with Google Sign-In requires all of the following to be uncommented together.
-  // If you are using Firebase Auth with other providers (e.g. Email/Password), you may only need
-  // firebase-auth.
-  // implementation(libs.firebase.auth)
-  // implementation(libs.androidx.credentials)
-  // implementation(libs.androidx.credentials.play.services)
-  // implementation(libs.googleid)
-  implementation(libs.firebase.appcheck.recaptcha)
+  // implementation(libs.converter.moshi)
+  // implementation(libs.firebase.ai)
+  // implementation(libs.firebase.appcheck.recaptcha)
   implementation(libs.kotlinx.coroutines.android)
   implementation(libs.kotlinx.coroutines.core)
-  implementation(libs.logging.interceptor)
+  // implementation(libs.logging.interceptor)
   implementation(libs.moshi.kotlin)
-  implementation(libs.okhttp)
-  // implementation(libs.play.services.location)
-  implementation(libs.retrofit)
+  // implementation(libs.okhttp)
+  // implementation(libs.retrofit)
+
   testImplementation(libs.androidx.compose.ui.test.junit4)
   testImplementation(libs.androidx.core)
   testImplementation(libs.androidx.junit)
@@ -143,5 +137,4 @@ dependencies {
   debugImplementation(libs.androidx.compose.ui.test.manifest)
   debugImplementation(libs.androidx.compose.ui.tooling)
   "ksp"(libs.androidx.room.compiler)
-  // "ksp"(libs.moshi.kotlin.codegen)
 }
