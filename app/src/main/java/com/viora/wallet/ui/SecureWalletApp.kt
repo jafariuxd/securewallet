@@ -118,7 +118,7 @@ fun copyToClipboard(context: Context, text: String, label: String = "Card Info")
 }
 
 fun isCardWithFrontBack(cardType: String): Boolean {
-    return cardType == "BANK_CARD" || cardType == "NATIONAL_ID" || cardType == "MILITARY_CARD" || cardType == "DRIVERS_LICENSE" || cardType == "STUDENT_ID"
+    return cardType == "BANK_CARD" || cardType == "NATIONAL_ID" || cardType == "MILITARY_CARD" || cardType == "DRIVERS_LICENSE" || cardType == "STUDENT_ID" || cardType == "CAR_REGISTRATION" || cardType == "MOTOR_REGISTRATION"
 }
 
 fun isMultiImageDocument(cardType: String): Boolean {
@@ -127,6 +127,7 @@ fun isMultiImageDocument(cardType: String): Boolean {
 
 fun buildExtraFieldsJson(
     cardType: String,
+    accountType: String = "",
     fatherName: String = "",
     motherName: String = "",
     birthDate: String = "",
@@ -145,6 +146,9 @@ fun buildExtraFieldsJson(
 ): String? {
     val map = mutableMapOf<String, String>()
     when (cardType) {
+        "BANK_CARD" -> {
+            if (accountType.isNotBlank()) map["account_type"] = accountType
+        }
         "NATIONAL_ID" -> {
             if (fatherName.isNotBlank()) map["father_name"] = fatherName
             if (birthDate.isNotBlank()) map["birth_date"] = birthDate
@@ -195,6 +199,9 @@ fun getDocumentTypeName(cardType: String): String {
         "MILITARY_CARD" -> "کارت پایان خدمت"
         "DRIVERS_LICENSE" -> "گواهینامه رانندگی"
         "STUDENT_ID" -> "کارت دانشجویی"
+        "CAR_REGISTRATION" -> "کارت ماشین"
+        "MOTOR_REGISTRATION" -> "کارت موتور"
+        "INSURANCE_POLICY" -> "بیمه‌نامه"
         "POSTAL_ADDRESS" -> "آدرس پستی"
         else -> "سایر مدارک"
     }
@@ -209,6 +216,9 @@ fun getDocumentTypeIcon(cardType: String): ImageVector {
         "MILITARY_CARD" -> Icons.Default.Shield
         "DRIVERS_LICENSE" -> Icons.Default.DirectionsCar
         "STUDENT_ID" -> Icons.Default.School
+        "CAR_REGISTRATION" -> Icons.Default.DirectionsCar
+        "MOTOR_REGISTRATION" -> Icons.Default.TwoWheeler
+        "INSURANCE_POLICY" -> Icons.Default.Security
         "POSTAL_ADDRESS" -> Icons.Default.Place
         else -> Icons.Default.Folder
     }
@@ -1038,6 +1048,9 @@ fun DashboardScreen(viewModel: WalletViewModel) {
                                 "MILITARY_CARD",
                                 "DRIVERS_LICENSE",
                                 "STUDENT_ID",
+                                "CAR_REGISTRATION",
+                                "MOTOR_REGISTRATION",
+                                "INSURANCE_POLICY",
                                 "POSTAL_ADDRESS",
                                 "OTHER"
                             )
@@ -1474,6 +1487,9 @@ fun CardDetailScreen(viewModel: WalletViewModel) {
         "MILITARY_CARD" -> "شماره کارت پایان خدمت"
         "DRIVERS_LICENSE" -> "شماره گواهینامه"
         "STUDENT_ID" -> "شماره دانشجویی"
+        "CAR_REGISTRATION" -> "شماره پلاک / VIN"
+        "MOTOR_REGISTRATION" -> "شماره پلاک / VIN"
+        "INSURANCE_POLICY" -> "شماره بیمه‌نامه"
         "POSTAL_ADDRESS" -> "کد پستی"
         else -> "شماره مدرک"
     }
@@ -1635,6 +1651,15 @@ fun CardDetailScreen(viewModel: WalletViewModel) {
                             label = "شماره حساب",
                             value = card?.accountNumber ?: "",
                             onCopy = { card?.accountNumber?.let { copyToClipboard(context, it, "شماره حساب") } }
+                        )
+                    }
+                    
+                    val accountType = card?.getExtraFieldsMap()?.get("account_type")
+                    if (!accountType.isNullOrBlank()) {
+                        DetailRowItem(
+                            label = "نوع حساب",
+                            value = accountType,
+                            onCopy = { copyToClipboard(context, accountType, "نوع حساب") }
                         )
                     }
 
@@ -1880,6 +1905,8 @@ fun CardDetailScreen(viewModel: WalletViewModel) {
                         }
                         if (!card?.shebaNumber.isNullOrBlank()) { appendLine("شماره شبا: ${card?.shebaNumber}") }
                         if (!card?.accountNumber.isNullOrBlank()) { appendLine("شماره حساب: ${card?.accountNumber}") }
+                        val accType = card?.getExtraFieldsMap()?.get("account_type")
+                        if (!accType.isNullOrBlank()) { appendLine("نوع حساب: $accType") }
                     }
                     copyToClipboard(context, formattedDetails, "مشخصات مدرک")
                     Toast.makeText(context, "تمام جزئیات در حافظه کپی شد", Toast.LENGTH_LONG).show()
@@ -2083,6 +2110,7 @@ fun CardEditorScreen(viewModel: WalletViewModel, isEditMode: Boolean) {
     var shebaNumber by remember(card) { mutableStateOf(card?.shebaNumber ?: "IR") }
     var accountNumber by remember(card) { mutableStateOf(card?.accountNumber ?: "") }
     val initialExtraMap = remember(card) { card?.getExtraFieldsMap() ?: emptyMap() }
+    var extraAccountType by remember(card) { mutableStateOf(initialExtraMap["account_type"] ?: "") }
     var extraFatherName by remember(card) { mutableStateOf(initialExtraMap["father_name"] ?: "") }
     var extraMotherName by remember(card) { mutableStateOf(initialExtraMap["mother_name"] ?: "") }
     var extraBirthDate by remember(card) { mutableStateOf(initialExtraMap["birth_date"] ?: "") }
@@ -2772,6 +2800,9 @@ fun CardEditorScreen(viewModel: WalletViewModel, isEditMode: Boolean) {
                         "MILITARY_CARD" -> "شماره کارت پایان خدمت"
                         "DRIVERS_LICENSE" -> "شماره گواهینامه"
                         "STUDENT_ID" -> "شماره دانشجویی"
+                        "CAR_REGISTRATION" -> "شماره پلاک / VIN"
+                        "MOTOR_REGISTRATION" -> "شماره پلاک / VIN"
+                        "INSURANCE_POLICY" -> "شماره بیمه‌نامه"
                         "POSTAL_ADDRESS" -> "کد پستی ۱۰ رقمی"
                         else -> "شماره مدرک / شماره شناسه"
                     }
@@ -2859,6 +2890,21 @@ fun CardEditorScreen(viewModel: WalletViewModel, isEditMode: Boolean) {
                                 maxLines = 1,
                                 leadingIcon = {
                                     Icon(imageVector = Icons.Default.Description, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                                },
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                                    focusedTextColor = Color.White,
+                                    unfocusedTextColor = Color.White
+                                )
+                            )
+                            OutlinedTextField(
+                                value = extraAccountType,
+                                onValueChange = { extraAccountType = it },
+                                label = { Text("نوع حساب") },
+                                placeholder = { Text("مثال: جاری، پس انداز، قرض الحسنه") },
+                                modifier = Modifier.fillMaxWidth().testTag("input_account_type"),
+                                leadingIcon = {
+                                    Icon(imageVector = Icons.Default.AccountBalanceWallet, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
                                 },
                                 colors = OutlinedTextFieldDefaults.colors(
                                     focusedBorderColor = MaterialTheme.colorScheme.primary,
@@ -3269,8 +3315,14 @@ fun CardEditorScreen(viewModel: WalletViewModel, isEditMode: Boolean) {
                 ImageSourceSelectionDialog(
                     title = "انتخاب تصویر روی مدرک",
                     onDismissRequest = { showImageOptionsForFront = false },
-                    onCameraSelect = { checkAndLaunchCamera(true) },
-                    onGallerySelect = { checkAndLaunchGallery(true) }
+                    onCameraSelect = { 
+                        showImageOptionsForFront = false
+                        checkAndLaunchCamera(true) 
+                    },
+                    onGallerySelect = { 
+                        showImageOptionsForFront = false
+                        checkAndLaunchGallery(true) 
+                    }
                 )
             }
 
@@ -3279,8 +3331,14 @@ fun CardEditorScreen(viewModel: WalletViewModel, isEditMode: Boolean) {
                 ImageSourceSelectionDialog(
                     title = "انتخاب تصویر پشت مدرک",
                     onDismissRequest = { showImageOptionsForBack = false },
-                    onCameraSelect = { checkAndLaunchCamera(false) },
-                    onGallerySelect = { checkAndLaunchGallery(false) }
+                    onCameraSelect = { 
+                        showImageOptionsForBack = false
+                        checkAndLaunchCamera(false) 
+                    },
+                    onGallerySelect = { 
+                        showImageOptionsForBack = false
+                        checkAndLaunchGallery(false) 
+                    }
                 )
             }
 
@@ -3300,6 +3358,7 @@ fun CardEditorScreen(viewModel: WalletViewModel, isEditMode: Boolean) {
 
                         val extraJson = buildExtraFieldsJson(
                             cardType = cardType,
+                            accountType = extraAccountType,
                             fatherName = extraFatherName,
                             motherName = extraMotherName,
                             birthDate = extraBirthDate,
@@ -3383,6 +3442,28 @@ fun SettingsScreen(viewModel: WalletViewModel) {
     var connectedEmail by remember { mutableStateOf(viewModel.getSignedInAccountEmail()) }
     val isBiometricAvailable = viewModel.isBiometricHardwareAvailable()
 
+    var showBackupDialog by remember { mutableStateOf(false) }
+    var showRestoreDialog by remember { mutableStateOf(false) }
+    var backupPassword by remember { mutableStateOf("") }
+    var selectedRestoreUri by remember { mutableStateOf<android.net.Uri?>(null) }
+    
+    val backupLauncher = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri ->
+        if (uri != null) {
+            viewModel.backupToUri(uri, backupPassword, context) { success, msg ->
+                Toast.makeText(context, msg, Toast.LENGTH_LONG).show()
+                showBackupDialog = false
+                backupPassword = ""
+            }
+        }
+    }
+    
+    val restoreLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        if (uri != null) {
+            selectedRestoreUri = uri
+            showRestoreDialog = true
+        }
+    }
+
     BackHandler {
         viewModel.navigateTo(AppScreen.DASHBOARD)
     }
@@ -3458,6 +3539,112 @@ fun SettingsScreen(viewModel: WalletViewModel) {
             }
 
             // Pin reset card
+            Card(
+                colors = CardDefaults.cardColors(containerColor = SophisticatedSurface),
+                shape = RoundedCornerShape(16.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text(
+                        text = "پشتیبان‌گیری و بازیابی",
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.secondary,
+                        fontSize = 16.sp
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = "می‌توانید از اطلاعات خود فایل پشتیبان رمزگذاری شده تهیه کنید یا آن را برگردانید.",
+                        color = Color.Gray,
+                        fontSize = 12.sp
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Button(
+                            onClick = { showBackupDialog = true },
+                            modifier = Modifier.weight(1f),
+                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+                        ) {
+                            Icon(imageVector = Icons.Default.CloudDownload, contentDescription = null)
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text("بکاپ‌گیری")
+                        }
+                        
+                        OutlinedButton(
+                            onClick = { restoreLauncher.launch(arrayOf("*/*")) },
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Icon(imageVector = Icons.Default.Restore, contentDescription = null)
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text("بازیابی")
+                        }
+                    }
+                }
+            }
+
+            if (showBackupDialog || showRestoreDialog) {
+                AlertDialog(
+                    onDismissRequest = { 
+                        showBackupDialog = false
+                        showRestoreDialog = false
+                        selectedRestoreUri = null
+                    },
+                    containerColor = SophisticatedSurface,
+                    title = { Text(if (showBackupDialog) "رمزگذاری بکاپ" else "رمزگشایی بکاپ", color = Color.White) },
+                    text = {
+                        Column {
+                            Text(
+                                text = if (showBackupDialog) "یک رمز عبور برای این فایل تعیین کنید:" else "رمز عبور فایلی که می‌خواهید بازیابی کنید را وارد کنید:",
+                                color = Color.LightGray
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            OutlinedTextField(
+                                value = backupPassword,
+                                onValueChange = { backupPassword = it },
+                                label = { Text("رمز عبور") },
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                                singleLine = true,
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    focusedTextColor = Color.White,
+                                    unfocusedTextColor = Color.White
+                                )
+                            )
+                        }
+                    },
+                    confirmButton = {
+                        Button(onClick = {
+                            if (backupPassword.isBlank()) {
+                                Toast.makeText(context, "رمز عبور الزامی است", Toast.LENGTH_SHORT).show()
+                                return@Button
+                            }
+                            if (showBackupDialog) {
+                                backupLauncher.launch("wallet_backup_${System.currentTimeMillis()}.json")
+                            } else {
+                                if (selectedRestoreUri != null) {
+                                    viewModel.restoreFromUri(selectedRestoreUri!!, backupPassword, context) { success, msg ->
+                                        Toast.makeText(context, msg, Toast.LENGTH_LONG).show()
+                                        showRestoreDialog = false
+                                        backupPassword = ""
+                                        selectedRestoreUri = null
+                                    }
+                                }
+                            }
+                        }) {
+                            Text("تایید")
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { 
+                            showBackupDialog = false
+                            showRestoreDialog = false
+                            selectedRestoreUri = null
+                        }) {
+                            Text("لغو", color = Color.Gray)
+                        }
+                    }
+                )
+            }
+
             Card(
                 colors = CardDefaults.cardColors(containerColor = SophisticatedSurface),
                 shape = RoundedCornerShape(16.dp),
@@ -3555,6 +3742,11 @@ fun saveBitmapToGallery(context: android.content.Context, bitmap: android.graphi
 
 fun createTempImageUri(context: android.content.Context): android.net.Uri {
     val file = java.io.File(context.cacheDir, "camera_capture_${System.currentTimeMillis()}.jpg")
+    try {
+        file.createNewFile()
+    } catch (e: Exception) {
+        // Ignore
+    }
     return androidx.core.content.FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
 }
 
@@ -3741,6 +3933,9 @@ fun DocumentTypeSelectorBottomSheet(
         "MILITARY_CARD" to "🪖 کارت پایان خدمت",
         "DRIVERS_LICENSE" to "🚘 گواهینامه رانندگی",
         "STUDENT_ID" to "🎓 کارت دانشجویی",
+        "CAR_REGISTRATION" to "🚘 کارت ماشین",
+        "MOTOR_REGISTRATION" to "🏍️ کارت موتور",
+        "INSURANCE_POLICY" to "🛡️ بیمه‌نامه",
         "POSTAL_ADDRESS" to "📮 آدرس پستی",
         "OTHER" to "📂 سایر مدارک"
     )
