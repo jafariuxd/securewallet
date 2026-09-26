@@ -2246,6 +2246,57 @@ fun CardEditorScreen(viewModel: WalletViewModel, isEditMode: Boolean) {
         }
     }
 
+    // Multi-image Launchers (for multi-page documents like Postal Code, Insurance, Passport, Shenasnameh, etc.)
+    val multiCameraIntentLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == android.app.Activity.RESULT_OK) {
+            val bitmap = result.data?.extras?.get("data") as? Bitmap
+            if (bitmap != null) {
+                val outputStream = ByteArrayOutputStream()
+                bitmap.compress(Bitmap.CompressFormat.JPEG, 70, outputStream)
+                val compressedBytes = outputStream.toByteArray()
+                val b64 = android.util.Base64.encodeToString(compressedBytes, android.util.Base64.DEFAULT)
+                additionalImagesList.add(b64)
+            }
+        }
+    }
+
+    val multiGalleryIntentLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == android.app.Activity.RESULT_OK) {
+            val uri = result.data?.data
+            if (uri != null) {
+                uriToBase64(context, uri)?.let { additionalImagesList.add(it) }
+            }
+        }
+    }
+
+    val multiPickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickVisualMedia()
+    ) { uri ->
+        if (uri != null) {
+            uriToBase64(context, uri)?.let { additionalImagesList.add(it) }
+        }
+    }
+
+    val multiGetContentLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri ->
+        if (uri != null) {
+            uriToBase64(context, uri)?.let { additionalImagesList.add(it) }
+        }
+    }
+
+    val multiCameraLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.TakePicture()
+    ) { success ->
+        if (success && tempMultiUri != null) {
+            uriToBase64(context, tempMultiUri!!)?.let { additionalImagesList.add(it) }
+        }
+    }
+
 
     // State to store which action we wanted to run after permissions are granted
     var pendingActionAfterPermission by remember { mutableStateOf<String?>(null) }
@@ -2342,6 +2393,43 @@ fun CardEditorScreen(viewModel: WalletViewModel, isEditMode: Boolean) {
                     Toast.makeText(context, "دسترسی به گالری داده نشد.", Toast.LENGTH_SHORT).show()
                 }
             }
+            "CAMERA_MULTI" -> {
+                if (cameraGranted) {
+                    try {
+                        val uri = createTempImageUri(context)
+                        tempMultiUri = uri
+                        multiCameraLauncher.launch(uri)
+                    } catch (e: Exception) {
+                        try {
+                            val intent = android.content.Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE)
+                            multiCameraIntentLauncher.launch(intent)
+                        } catch (ex: Exception) {
+                            Toast.makeText(context, "دوربین: ${e.message ?: "Unknown"}", Toast.LENGTH_LONG).show()
+                        }
+                    }
+                } else {
+                    Toast.makeText(context, "دسترسی به دوربین داده نشد.", Toast.LENGTH_SHORT).show()
+                }
+            }
+            "GALLERY_MULTI" -> {
+                if (storageGranted) {
+                    try {
+                        multiGetContentLauncher.launch("image/*")
+                    } catch (e: Exception) {
+                        try {
+                            val intent = android.content.Intent(
+                                android.content.Intent.ACTION_PICK,
+                                android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+                            )
+                            multiGalleryIntentLauncher.launch(intent)
+                        } catch (ex: Exception) {
+                            Toast.makeText(context, "گالری: ${e.message ?: "Unknown"}", Toast.LENGTH_LONG).show()
+                        }
+                    }
+                } else {
+                    Toast.makeText(context, "دسترسی به گالری داده نشد.", Toast.LENGTH_SHORT).show()
+                }
+            }
         }
         pendingActionAfterPermission = null
     }
@@ -2414,6 +2502,74 @@ fun CardEditorScreen(viewModel: WalletViewModel, isEditMode: Boolean) {
                 }
             } else {
                 pendingActionAfterPermission = if (isFront) "GALLERY_FRONT" else "GALLERY_BACK"
+                val permissionsToRequest = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                    arrayOf(android.Manifest.permission.READ_MEDIA_IMAGES, android.Manifest.permission.READ_MEDIA_VISUAL_USER_SELECTED)
+                } else {
+                    arrayOf(storagePermission)
+                }
+                requestPermissionLauncher.launch(permissionsToRequest)
+            }
+        }
+    }
+
+    val checkAndLaunchCameraMulti: () -> Unit = {
+        val hasCameraPermission = androidx.core.content.ContextCompat.checkSelfPermission(
+            context,
+            android.Manifest.permission.CAMERA
+        ) == android.content.pm.PackageManager.PERMISSION_GRANTED
+
+        if (hasCameraPermission) {
+            try {
+                val uri = createTempImageUri(context)
+                tempMultiUri = uri
+                multiCameraLauncher.launch(uri)
+            } catch (e: Exception) {
+                try {
+                    val intent = android.content.Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE)
+                    multiCameraIntentLauncher.launch(intent)
+                } catch (ex: Exception) {
+                    Toast.makeText(context, "دوربین: ${e.message ?: "Unknown"}", Toast.LENGTH_LONG).show()
+                }
+            }
+        } else {
+            pendingActionAfterPermission = "CAMERA_MULTI"
+            requestPermissionLauncher.launch(arrayOf(android.Manifest.permission.CAMERA))
+        }
+    }
+
+    val checkAndLaunchGalleryMulti: () -> Unit = {
+        try {
+            multiPickerLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+        } catch (e: Exception) {
+            val storagePermission = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+                android.Manifest.permission.READ_MEDIA_IMAGES
+            } else {
+                android.Manifest.permission.READ_EXTERNAL_STORAGE
+            }
+
+            val hasStoragePermission = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                androidx.core.content.ContextCompat.checkSelfPermission(context, android.Manifest.permission.READ_MEDIA_IMAGES) == android.content.pm.PackageManager.PERMISSION_GRANTED ||
+                androidx.core.content.ContextCompat.checkSelfPermission(context, android.Manifest.permission.READ_MEDIA_VISUAL_USER_SELECTED) == android.content.pm.PackageManager.PERMISSION_GRANTED
+            } else {
+                androidx.core.content.ContextCompat.checkSelfPermission(context, storagePermission) == android.content.pm.PackageManager.PERMISSION_GRANTED
+            }
+
+            if (hasStoragePermission) {
+                try {
+                    multiGetContentLauncher.launch("image/*")
+                } catch (ex: Exception) {
+                    try {
+                        val intent = android.content.Intent(
+                            android.content.Intent.ACTION_PICK,
+                            android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+                        )
+                        multiGalleryIntentLauncher.launch(intent)
+                    } catch (exc: Exception) {
+                        Toast.makeText(context, "گالری: ${e.message ?: "Unknown"}", Toast.LENGTH_LONG).show()
+                    }
+                }
+            } else {
+                pendingActionAfterPermission = "GALLERY_MULTI"
                 val permissionsToRequest = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
                     arrayOf(android.Manifest.permission.READ_MEDIA_IMAGES, android.Manifest.permission.READ_MEDIA_VISUAL_USER_SELECTED)
                 } else {
@@ -3291,7 +3447,7 @@ fun CardEditorScreen(viewModel: WalletViewModel, isEditMode: Boolean) {
 
                         // Add new image card button
                         Card(
-                            onClick = { showImageOptionsForFront = true },
+                            onClick = { showImageOptionsForMulti = true },
                             modifier = Modifier.size(110.dp),
                             shape = RoundedCornerShape(12.dp),
                             colors = CardDefaults.cardColors(containerColor = SophisticatedSurface)
@@ -3308,6 +3464,22 @@ fun CardEditorScreen(viewModel: WalletViewModel, isEditMode: Boolean) {
                         }
                     }
                 }
+            }
+
+            // Dialogs for Multi Image Options
+            if (showImageOptionsForMulti) {
+                ImageSourceSelectionDialog(
+                    title = "افزودن تصویر مدرک",
+                    onDismissRequest = { showImageOptionsForMulti = false },
+                    onCameraSelect = { 
+                        showImageOptionsForMulti = false
+                        checkAndLaunchCameraMulti() 
+                    },
+                    onGallerySelect = { 
+                        showImageOptionsForMulti = false
+                        checkAndLaunchGalleryMulti() 
+                    }
+                )
             }
 
             // Dialogs for Front Image Options
